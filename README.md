@@ -186,12 +186,15 @@ SELECT * FROM users WHERE username='vampire     ';
 #### PHP
 
 - index.php 的默认路径是 /var/www/html/index.php
+- 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入
 
 ##### 文件漏洞
 - 在做题的时候尽量多试几个题目的提示后缀​（如 index.php、source.php）
 
 ###### 上传
 > 拿到 webshell
+>
+> 需要注意下，有时候后端是通过 HTTP Headers 的 content-type 来判断文件类型的，改了 content-type 即可绕过。（在 Brup 中，只用改 ------WebKit 下方的 content-type）遇到过一道题，上传类型必须用 image/jpeg，用 jpg 和 png 都不行。
 
 **test.php**
 
@@ -202,7 +205,7 @@ SELECT * FROM users WHERE username='vampire     ';
 - 2.将该文件上传到服务器(连接地址就是该文件路径，密码是上面输入的'a')
 - 3.使用中国蚁剑连接该文件即可
 
-(如果不成功，考虑绕过，试试 test.phtml 方法)
+(如果不成功，考虑绕过，试试 test.phtml 方法)【注意，有时候后端检测了文件中的内容，有 <? 就上传不了，可以考虑下面的方法 】
 
 **test.phtml**
 
@@ -211,7 +214,7 @@ SELECT * FROM users WHERE username='vampire     ';
 ```
 **.htaccess 防止绕过 php**
 
-如果服务端禁止上传 php，可以将 php 改为图片格式 (如 png) 欺骗服务器，再使用 .htaccess 将 png 指定为 php 文件执行。
+如果服务端禁止上传 php，可以将 php 改为图片格式 (如 png) 欺骗服务器，再使用 .htaccess 将 png 指定为 php 文件执行。(需要注意下，传图片需要确保 HTTP Headers 的 content-type 为 image/jpeg，目前知道 .htaccess 支持 Nginx 和 Apache)
 
 .htaccess 文件内容
 
@@ -387,6 +390,8 @@ if($_GET['id'] === null) 是强比较
 ##### 反序列化
 
 > PHP 的反序列化和 Python 有很大区别。PHP 中只能根据原本模版 (class) 来改，只能改变属性值，不能修改方法 (只能修改构造方法)。PHP 的序列化更像是在前端构建和后端相匹配的数据结构。
+>
+> 反序列化也支持反序列化字符串。
 >
 > PHP 中类属性只能是 字符串、数值或 bool，只能在外部用 -> 指向其他类型（如函数）
 >
@@ -572,6 +577,8 @@ https://www.iamwawa.cn/daxiaoxie.html
 
 ### 图片类型
 
+- bitmap 格式的文件后缀是 bmp，TIFF 格式的后缀是 tif (这些类图片格式可以考虑直接改成 jpg 打开)
+
 #### 二维码、条码识别
 https://online-barcode-reader.inliteresearch.com/
 
@@ -638,6 +645,10 @@ convert -delay 3 *.png output.gif
 
 ### 文件
 >不要相信任何后缀类型
+>
+>efi 是 Unix 的可执行文件
+>
+>evt 是 Windows 的日志文件（好像需要 win 7 ?）
 
 #### 查看文件类型
 用 file 命令识别下是什么文件
@@ -665,6 +676,8 @@ strings webshell.pcapng | grep -E '.{1,10}\{.{1,50}\}.*'
 
 ##### binwalk
 > 如果 binwalk 查到了内部映象却分离不了，应该尝试 foremost
+>
+
 **查照内部映像**
 ```bash
 binwalk firmware.bin
@@ -676,8 +689,8 @@ binwalk firmware.bin
 binwalk -e firmware.bin
 ```
 
+##### foremost
 
-#### foremost
 > 有时候用 binwalk 提取不了时，​可以用 foremost 提取。
 
 **文件递归提取**
@@ -695,6 +708,52 @@ foremost -T ccc.pcap
 可以通过观察 HTTP 包的长度判断哪些是注入成功的，拼接收到的 ascii 码即可
 
 操作方法: 先筛选出 http (搜索 http 即可)，再按 http 导出，导出界面选择按 size 排序可能会看到连续的 flag
+
+**SQL 盲注简单原理**
+
+例如（下面的流量按时间顺序排序）
+
+```python
+LIMIT 0, 1),1,1) )>64 AND
+
+LIMIT 0, 1),1,1))>96 AND
+
+LIMIT 0, 1),1, 1) )>112 AND
+
+LIMIT 0,1),1,1) )>104 AND
+
+LIMIT 0, 1),1, 1) )>100 AND
+
+LIMIT 0, 1),1,1))>102 AND
+
+LIMIT 0, 1),1,1))>101 AND
+
+LIMIT 0,1),2,1))>96 AND
+
+LIMIT 0,1),2,1))>112 AND
+
+LIMIT 0,1),2,1))>104 AND
+
+LIMIT 0,1),2,1))>108 AND
+
+LIMIT 0,1),2,1) )>106 AND
+
+LIMIT 0, 1),2,1))>107 AND
+
+LIMIT 0, 1),3,1))>96 AND
+
+LIMIT 0, 1),3,1))>112 AND
+
+LIMIT 0,1),3,1))>104 AND
+
+LIMIt 0,1),3,1))>100 AND
+
+LIMIt 0,1),3,1))>98 AND
+
+LIMIT 0, 1),3, 1))>97 AND
+```
+
+数字的第3列代表猜的字段位数，`>`后面的数字是 Ascii 码。数字的第3列相同时，取最后一个 Ascii 码(如果后面有状态码，需要保证这一行的状态码是200而不是404)。将取得的 Ascci 码拼接好即是完整的字段。（可以用字典来拼接。一般依次猜数据库名、表名、列名等）
 
 ##### 键盘输入(USB)
 
@@ -722,6 +781,9 @@ crunch 11 11 -t 1391040%%%% -o 1.txt
 ```
 
 #### 压缩文件
+
+- 有的压缩文件只有内部的一个文件加密，可以手动试下其他文件能不能直接解压。
+- 优先使用 unzip 命令解压，unzip 会自动解压上面提到的未加密文件。(但是遇到过编码不支持 unzip 的情况，所以不能只局限于 unzip)
 
 ##### zip爆破
 
