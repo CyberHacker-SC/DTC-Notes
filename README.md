@@ -650,11 +650,13 @@ python3 basecrack.py -b 编码文本
 ```
 
 **自动解码**
+
 ```bash
 python basecrack.py --magic -b 编码文本
 ```
 
 **base64 转图片**
+
 ```bash
 https://tool.jisuapi.com/base642pic.html
 ```
@@ -667,7 +669,18 @@ https://tool.jisuapi.com/base642pic.html
 
 #### 肉眼识别密文类型
 
+##### 摩斯电码
+
+形如
+
+```
+-- --- .-. ... . ..--.- .. ... ..--.- -.-. --- --- .-.. ..--.- -... ..- - ..--.- -... .- -.-. --- -. ..--.- .. ... ..--.- -.-. --- --- .-.. . .-. ..--.- -- -- -.. -.. -- -.. -- -.. -- -- -- -.. -.. -.. /-- -.. -- -.. -.. --/ -- -- -- -- -- /-- -.. -.. -- -.. -- /-- -.. -.. -- 
+```
+
+如果工具解不开，直接用 ciphey 解就行了（自动去斜杠）
+
 ##### 栅栏密码
+
 形如
 
 ```
@@ -771,6 +784,10 @@ stegpy _image.png -p 密码
 #### Hash 类密文在线解密
 https://www.cmd5.com/
 
+上面的地址有时候要收费，下面这个是免费的
+
+https://www.somd5.com/
+
 #### 密码字典生成
 
 ##### crunch
@@ -784,6 +801,9 @@ https://www.iamwawa.cn/daxiaoxie.html
 
 ## Misc
 
+- 不排除 Misc 的 flag 是中文的情况，比如图片中隐藏了几个模糊的汉字。（有时候缩小了看得更清楚？）
+- jphs 在 macOS 中用不了？
+
 ### 图片类型
 
 - bitmap 格式的文件后缀是 bmp，TIFF 格式的后缀是 tif (这些类图片格式可以考虑直接改成 jpg 打开)
@@ -791,12 +811,17 @@ https://www.iamwawa.cn/daxiaoxie.html
 #### 二维码、条码识别
 https://online-barcode-reader.inliteresearch.com/
 
+有时候扫了二维码不一定能拿到 flag，遇到一道题，将 flag 藏在了 URL 的路径处，解开 base64 即可拿到 flag
+
 #### 查看 hex 中有无线索
 html 的编码样子
 
 类似 &#x66;&#x6c;&#x61;
 
+使用 hex friend 复制出来的文本格式有时候有问题（Mac 上肉眼看不见，用剪切板或粘贴在终端即可发现），OCR 一次。
+
 #### 图片属性里有可能藏有东西
+
 > macOS 像 Windows 一样查看图片的备注
 ```bash
 exiftool -verbose 1.jpg
@@ -820,6 +845,12 @@ exiftool -verbose 1.jpg
 ```bash
 zsteg -a file
 ```
+
+#### jphs
+
+有的图片(如部分 jpg)需要用 Jphswin 打开并输出为 txt 文件。Mac 使用的 win 11 虚拟机，文件在 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Misc/Windows工具/Jphswin.exe`
+
+使用方法，选择图片，点 Seek，然后空密码，输出为 txt (其实不一定是 txt，根据具体情况，把后缀改了)
 
 #### gif
 
@@ -865,7 +896,25 @@ convert -delay 3 *.png output.gif
 file 文件名
 ```
 
+有时候图片的 hex 被修改了，file 命令显示不准确，需要手动改文件头部的 hex 为正确 hex。格式如下
+
+| 格式类型 | 文件头标识                            | 文件尾标识                          |
+| -------- | ------------------------------------- | ----------------------------------- |
+| jpeg/jpg | FFD8                                  | FFD9                                |
+| gif      | 47 49 46 38 39(37) 61(G I F 8 9(7) a) |                                     |
+| png      | 89 50 4E 47 0D 0A 1A 0A               | 00 00 00 00 49 45 4E 44 AE 42 60 82 |
+| bmp      | 42 4D (B M)                           |                                     |
+| tiff     | 4D 4D 00 2A / 49 49 2A 00             |                                     |
+
+| **文件类型**  | **文件标识**         |
+| ------------- | -------------------- |
+| zip/docx/xlsx | 50 4B 03 04          |
+| RAR           | 52 61 72 21          |
+| doc/xls       | D0 CF 11 E0          |
+| pdf           | 25 50 44 46 2D 31 2E |
+
 #### txt
+
 txt 文件有可能可以下滑，信息藏在最下面
 
 #### word
@@ -1006,6 +1055,8 @@ java -jar ZipCenOp.jar r  压缩包名
 
 **zipCrack**
 
+优先使用下一个工具 fcrackzip
+
 ```bash
 git clone https://github.com/luckman666/zipCrack.git
 cd zipCrack
@@ -1014,6 +1065,8 @@ python zipcrack.py -f  file.zip -d password.txt
 ```
 
 **fcrackzip**
+
+- 如果密码正确但破解过程失败了，可能是因为压缩包在之前的使用中损坏了
 
 ```bash
 fcrackzip  -b -c 'aA1' -l 1-10 -u 文件名
@@ -1047,11 +1100,84 @@ Qwe$%^&*(123  --->      [aA1!]
 fcrackzip -b -c 1 -l 3 -v file.zip
 ```
 
+还可以指定密码字典来破解
+
+1.先生成密码字典
+
+- (1) 生成某个数值范围的密码字典
+
+  ```python
+  def main():
+      text = ''
+      for i in range(19900000, 20000000):
+          text += str(i) + '\n'
+          
+      with open('passwords.txt', 'w') as f:
+          f.write(text)
+  
+  
+  if __name__ == '__main__':
+      main()
+  ```
+
+  
+
+- (2) 指定密码位数生成字典
+
+  ```python
+  def main():
+      num = 9 # 一共多少位数
+      prefix = '372' # 前缀(前缀后面的部分则覆盖 num 位数的所有数值)
+      
+      text = ''
+      for i in range(0, 10 ** (num - (len(prefix)) + 1) ):
+          i = str(i)
+          left = '0' * (num - (len(prefix)) - len(i))
+          text += prefix + left + i + '\n'
+      
+      with open('passwords.txt', 'w') as f:
+          f.write(text)
+  
+  
+  if __name__ == '__main__':
+      main()
+  ```
+
+  
+
+2.指定用这个字典破解
+
+```
+fcrackzip -v -D -p passwords.txt -u flag.zip
+```
+
 #### .dat 文件
+
 开源的微信 Dat 文件(.dat)解码器 http://github.com/PiaoZhenJia/WeChatDatFileDecoder
+
+### 文本
+
+遇到过一道题，一串文本里基本是小写字母，此时提取大写字母组合起来就是 flag 。示例代码
+
+```python
+def main():
+    text = 'i was always Fond of visiting new scenes'
+    flag = ''
+    for i in text:
+        if i.isupper():
+            # 小写字母是 i.islower()
+            flag += i
+    print(flag)
+    
+
+if __name__ == '__main__':
+    main()
+```
+
 
 
 ## Reverse
+
 > 做逆向的第一步可以先用 strings 观察下封装方式。比如发现过 PyInstaller 的打包
 
 ### 环境
