@@ -668,28 +668,62 @@ https://tool.jisuapi.com/base642pic.html
 #### 肉眼识别密文类型
 
 ##### 栅栏密码
-形如(不是标准格式) fg2ivyo}l{2s3_o@aw__rcl@
+形如
+
+```
+(不是标准格式) fg2ivyo}l{2s3_o@aw__rcl@
 
 再来一个 KYdf0a3ebd5c4dc160-E{fb63ee0298b8f4d8}
+```
+
+
 
 ##### 培根密码
 
 解密地址 http://www.metools.info/code/bacon193.html
 
-形如 AABBBABBA
-        
+形如 
+
+```
+AABBBABBA
+```
+
+
+
+如果遇到类似培根密码的形式，如 MMDDMDMDMMMDDDMDMDDMMMMMMMDDMDMMDDM ，需要转为 AB 形式，快捷脚本:
+
+```python
+data = {
+    'M': 'A',
+    'D': 'B'
+}
+
+text = ''
+for i in 'MMDDMDMDMMMDDDMDMDDMMMMMMMDDMDMMDDM':
+    text+= data[i]
+    
+print(text)
+```
+
+
+
 ##### 社会主义核心价值观加密/解密
-形如 公正公正公正诚信文明公正民主公正法治法治友善平等和谐敬业和谐富强和谐富强和谐文明和谐平等公正公正和谐法治公正公正公正文明和谐民主和谐敬业和谐平等和谐敬业和谐敬业和谐和谐和谐公正法治友善法治
+形如 
+
+```
+公正公正公正诚信文明公正民主公正法治法治友善平等和谐敬业和谐富强和谐富强和谐文明和谐平等公正公正和谐法治公正公正公正文明和谐民主和谐敬业和谐平等和谐敬业和谐敬业和谐和谐和谐公正法治友善法治
+```
+
+
 
 ##### ook
-形如 Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
+形如
+
+```
+Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
+```
 
 解密地址 https://www.splitbrain.org/services/ook
-
-    猪圈密码
-        http://www.metools.info/code/c90.html
-    Baudot Code (例如 11001 00011 00111 01001 11011  10110 11111  10000 01110 11011  10110 11111  01001 00001)
-    ｜ https://www.boxentriq.com/code-breaking/baudot-code
 
 ##### 猪圈密码
 
@@ -701,12 +735,22 @@ https://tool.jisuapi.com/base642pic.html
 
 ##### Baudot Code
 
-形如 11001 00011 00111 01001 11011  10110 11111  10000 01110 11011  10110 11111  01001 00001
+形如
+
+```
+11001 00011 00111 01001 11011  10110 11111  10000 01110 11011  10110 11111  01001 00001
+```
 
 解密地址 https://www.boxentriq.com/code-breaking/baudot-code
 
 ##### html 的编码样子
-形如 &#x66;&#x6c;&#x61;
+形如
+
+```
+&#x66;&#x6c;&#x61;
+```
+
+
 
 
 ### 密码学及文本处理工具
