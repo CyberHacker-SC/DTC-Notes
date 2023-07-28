@@ -747,7 +747,15 @@ cat /f*
 ?id[]=1
 ```
 
-##### 函数备忘
+##### 函数或语法备忘
+
+###### 弱类型语言
+
+在PHP中，当字符串被用在数学运算中时，PHP会自动将其转换为数值。
+
+###### md5
+
+`md5('a')` 返回的是一个32字符的十六进制数，等效于 Python 中的 `hashlib.md5('a'.encode()).hexdigest()`
 
 ###### curl_setopt()
 
@@ -883,6 +891,10 @@ print(f'r:{r.text}')
 
 ##### 语法备忘
 
+###### 将十六进制转为十进制
+
+`num = int(hexadecimal, 16)`
+
 ###### 按位与 &
 
 运算规则：0&0=0; 0&1=0; 1&0=0; 1&1=1
@@ -967,7 +979,32 @@ python basecrack.py --magic -b 编码文本
 https://tool.jisuapi.com/base642pic.html
 ```
 
-#### 带前缀的 MD5 碰撞
+#### Hash 碰撞
+
+##### 普通碰撞
+
+有一些 hash 碰撞题目给的条件很多，实际并不难。按题目给的条件编写碰撞代码，简单地遍历数字即可得到结果，例如：
+
+```python
+import hashlib
+
+
+def main():
+    for i in range(100000):
+        token = hashlib.md5(str(i).encode()).hexdigest()
+        if token[1] == token[14] and token[14] == token[17]:
+            if (int(token[1], 16) + int(token[14], 16) + int(token[17], 16)) / int(token[1], 16) == int(token[31], 16):
+                print(i)
+                break
+
+
+if __name__ == '__main__':
+    main()
+```
+
+
+
+##### 带前缀的 MD5 碰撞
 
 运行以下脚本，解得后缀
 
