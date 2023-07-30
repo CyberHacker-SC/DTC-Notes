@@ -1,3 +1,8 @@
+'''
+    用于将一个 md 中所有标题升高一级（如 二级标题升为一级标题，三级标题升为二级标题，以此类推...）
+'''
+
+
 def upgrade_headings(md_content):
     lines = md_content.split('\n')
     for i, line in enumerate(lines):

