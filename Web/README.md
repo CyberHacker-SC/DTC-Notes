@@ -389,7 +389,7 @@ SetHandler application/x-httpd-php
 
 ##### 伪协议
 
-###### base64
+###### convert.base64-encode
 
 适用于 eval()、include()
 
@@ -416,6 +416,14 @@ http://xxx/?p=php://filter/convert.base64-encode/resource=flag.php
   ```
 
 注释：使用 ?file=flag.php 读取文件可能会因为权限不足而无法读取到内容。因为有些 Web 服务器，如 Apache，会对目录或文件设置访问权限。如果当前用户没有足够的权限来读取 flag.php 文件，则无法读取到该文件的内容。而使用 ?file=php://filter/convert.base64-encode/resource=flag.php 可以绕过这些权限限制，因为 PHP 脚本本身具有读取文件的权限，它可以打开并读取任何一个它拥有的文件。通过将读取到的文件内容转换成 base64 编码后输出，即使该文件是二进制或包含特殊字符，也可以正确地输出文件内容，因此能够获取 flag。
+
+###### convert.iconv.utf8.utf16
+
+前一种方法不行的情况下，有时候该方法行得通
+
+```
+php://filter/convert.iconv.utf8.utf16/resource=flag.php
+```
 
 ###### text/plain
 
@@ -1094,13 +1102,16 @@ class ease{
     }
  
     function __destruct(){
+      	// 如果 $this->method 的字符串内容在数组 array("ping") 中（意思是：'ping' 在 ['ping'] 中）
         if (in_array($this->method, array("ping"))) {
+          	// 调用 $this->method 方法，参数为 $this->args
             call_user_func_array(array($this, $this->method), $this->args);
         }
     } 
  
     function ping($ip){
         exec($ip, $result);
+      	// 打印变量的详细信息
         var_dump($result);
     }
 
