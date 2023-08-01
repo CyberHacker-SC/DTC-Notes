@@ -38,6 +38,7 @@
 
 - bitmap 格式的文件后缀是 bmp，TIFF 格式的后缀是 tif (这些类图片格式可以考虑直接改成 jpg 打开)
 - png 图片可以先用 `pngcheck 1.png` 检查一下图片有没问题，打不开的图片也可能是宽高被修改了。png 还可以考虑 lsb 一键工具
+- PS 中可以点击上方菜单栏的 窗口—信息 查看每个像素点的坐标
 
 ### 二维码、条码识别
 https://online-barcode-reader.inliteresearch.com/
@@ -71,7 +72,7 @@ exiftool -verbose 1.jpg
 #### 合并多张图
 如果有多张图，可以用 Stegsolve 合并(Image Combiner)
 
-### 另一种图片隐写解法 zsteg
+### 另一种图片隐写解法 zsteg (png, bpm)
 > 主要用来检测 png 和 bpm (主要用于 LSB ?)
 ```bash
 zsteg -a file
@@ -284,6 +285,7 @@ crunch 11 11 -t 1391040%%%% -o 1.txt
 - 有的压缩文件只有内部的一个文件加密，可以手动试下其他文件能不能直接解压。
 - 优先使用 unzip 命令解压，unzip 会自动解压上面提到的未加密文件。(但是遇到过编码不支持 unzip 的情况，所以不能只局限于 unzip)
 - 如果 macOS 打不开压缩文件，尝试使用 Windows 虚拟机
+- 直接用 binwalk 可以分离一个压缩包里未加密的文件
 
 #### zip爆破
 
@@ -295,7 +297,9 @@ java -jar ZipCenOp.jar r  压缩包名
 
 ##### 暴力破解 
 
-**zipCrack**
+###### zipCrack
+
+- 建议用 fcrackzip 替代
 
 优先使用下一个工具 fcrackzip
 
@@ -306,7 +310,7 @@ python zipcrack.py -f  file.zip -d password.txt
 # 注意:已经在 M1 Mac 的 /Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Misc/压缩包破解/zipCrack 处做了备份
 ```
 
-**fcrackzip**
+###### fcrackzip
 
 - 如果密码正确但破解过程失败了，可能是因为压缩包在之前的使用中损坏了
 
@@ -443,5 +447,4 @@ dd师父父鸭❤️，想找一个男师父来宠我辽 ٩(๑‌‌‌‌‍�
 ### 010 Editor
 
 异或: Tools-Hex Operations-Binary Xor ，输入要异或的内容即可，然后点击保存
-
 

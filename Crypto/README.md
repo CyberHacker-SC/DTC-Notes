@@ -261,6 +261,15 @@ U2FsdGVkX1/eK2855m8HM4cTq8Fquqtm6QDbcUu4F1yQpA==
 
 在线解密地址: https://www.qqxiuzi.cn/bianma/wenbenjiami.php?s=yinyue
 
+#### 数独密码
+
+如下图
+
+![](../static/img/数独密码.png)
+
+在线解密地址: https://shudu.gwalker.cn/
+
+解得结果后，所有数字连接起来就是密码
 
 ## 密码学及文本处理工具
 
