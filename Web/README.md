@@ -112,6 +112,16 @@ https://onlinetexttools.com/generate-text-from-regex
 
 https://c.runoob.com/front-end/854/
 
+### Linux 绕过正则表达式
+
+#### / 被过滤
+
+下面这条命令可以打印当前目录及子目录的所有文件内容
+
+```bash
+cat `find`
+```
+
 ## 端口扫描
 
 ### nmap
@@ -280,6 +290,7 @@ url='http://3d4bda8e-7eef-4853-9a8d-e0057f666d26.challenge.ctf.show/admin/checkl
 s='0123456789abcdefghijklmnopqrstuvwxyz'
 password=''
 flag=''
+# 从第1位到第17位，这里已知密码是17位数
 for i in range(1,18):
     print("第"+str(i)+"位")
     for j in s:
@@ -317,6 +328,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 - 看清楚题目是 `$_GET` 还是 `$_POST` 。提交 POST 方法时注意看参数名写好了没有
 - 当 system('ls'); 被绕过时，可以用 passthru("ls"); 代替。再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')、highlight_file('flag.txt')
 - 当空格和 cat 被绕过，可以用 %09 替代空格，${IFS} 也可以用于替换空格。tac 替代 cat。
+- $@ 可替代空字符串，用于绕过正则
 - %27%27 代表 '' 空字符串，可以绕过正则的 flag 匹配
 - 如果 ; 被过滤，可以用 ?> 代替
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
@@ -326,7 +338,14 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 - - 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
 
+#### PHP 绕过普通正则表达式
+
+${IFS} 用于替换空格
+
+$@ 替代空字符串
+
 #### 文件漏洞
+
 - 在做题的时候尽量多试几个题目的提示后缀​（如 index.php、source.php）
 
 ##### 上传
@@ -1052,4 +1071,56 @@ http://xxx/testURL?url=%00file:///flag
 ##### Struts2-Scan
 
 目前测试该工具扫不了漏洞，使用说明可以自己找缓存的 README
+
+
+
+## 经典错题
+
+### 攻防世界 unseping
+
+类型 反序列化
+
+```php
+<?php
+highlight_file(__FILE__);
+
+class ease{
+    
+    private $method;
+    private $args;
+    function __construct($method, $args) {
+        $this->method = $method;
+        $this->args = $args;
+    }
+ 
+    function __destruct(){
+        if (in_array($this->method, array("ping"))) {
+            call_user_func_array(array($this, $this->method), $this->args);
+        }
+    } 
+ 
+    function ping($ip){
+        exec($ip, $result);
+        var_dump($result);
+    }
+
+    function waf($str){
+        if (!preg_match_all("/(\||&|;| |\/|cat|flag|tac|php|ls)/", $str, $pat_array)) {
+            return $str;
+        } else {
+            echo "don't hack";
+        }
+    }
+ 
+    function __wakeup(){
+        foreach($this->args as $k => $v) {
+            $this->args[$k] = $this->waf($v);
+        }
+    }   
+}
+
+$ctf=@$_POST['ctf'];
+@unserialize(base64_decode($ctf));
+?>
+```
 
