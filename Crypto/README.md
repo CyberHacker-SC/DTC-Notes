@@ -35,7 +35,30 @@ https://tool.jisuapi.com/base642pic.html
 
 ### Hash 碰撞
 
-#### 普通碰撞
+- MD5算法生成的哈希值通常以16进制的形式表示。这是因为MD5算法生成的原始结果是一个128位的二进制数，这个数包含的信息量非常大，如果直接以二进制或者十进制的形式表示，将会非常长。因此，通常会将这个二进制数转换为16进制来表示，这样可以大大减少表示的长度。一个128位的二进制数可以转换为一个32位的16进制数，这就是我们通常看到的MD5哈希值的形式。
+- 有一些 hash 碰撞题目给的条件很多，实际并不难。按题目给的条件编写碰撞代码，简单地遍历数字即可得到结果
+
+#### 通用碰撞模版
+
+```python
+import hashlib
+
+
+def main():
+    for i in range(100000):
+        token = hashlib.md5(str(i).encode()).hexdigest()
+        # 筛选符合碰撞规则的 md5 值
+        if token[-6:] == '8b184b':
+            print(i)
+            print(token)
+            break
+
+
+if __name__ == '__main__':
+    main()
+```
+
+#### 普通碰撞套路示例
 
 有一些 hash 碰撞题目给的条件很多，实际并不难。按题目给的条件编写碰撞代码，简单地遍历数字即可得到结果，例如：
 
@@ -43,6 +66,7 @@ https://tool.jisuapi.com/base642pic.html
 import hashlib
 
 
+# if 语句的内容是例题给出的特殊条件
 def main():
     for i in range(100000):
         token = hashlib.md5(str(i).encode()).hexdigest()
