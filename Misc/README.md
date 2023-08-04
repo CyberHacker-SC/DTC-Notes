@@ -39,6 +39,7 @@
 - bitmap 格式的文件后缀是 bmp，TIFF 格式的后缀是 tif (这些类图片格式可以考虑直接改成 jpg 打开)
 - png 图片可以先用 `pngcheck 1.png` 检查一下图片有没问题，打不开的图片也可能是宽高被修改了。png 还可以考虑 lsb 一键工具
 - PS 中可以点击上方菜单栏的 窗口—信息 查看每个像素点的坐标
+- 图片不一定只是图片，完全可以当成文件来做，例如用 strings 输出该文件的信息，可能有隐藏提示
 
 ### 二维码、条码识别
 https://online-barcode-reader.inliteresearch.com/
@@ -58,6 +59,41 @@ html 的编码样子
 ```bash
 exiftool -verbose 1.jpg
 # 其中输出内容的 XPComment 就是图片备注
+```
+
+### 破解正确宽高
+
+有时候因为图片宽高被修改了导致显示不全
+
+```python
+import binascii
+import struct
+import sys
+
+file = input("图片的地址")
+fr = open(file,'rb').read()
+data = bytearray(fr[0x0c:0x1d])
+crc32key = eval('0x'+str(binascii.b2a_hex(fr[0x1d:0x21]))[2:-1])
+#原来的代码: crc32key = eval(str(fr[29:33]).replace('\\x','').replace("b'",'0x').replace("'",''))
+n = 4095
+for w in range(n):
+    width = bytearray(struct.pack('>i', w))
+    for h in range(n):
+        height = bytearray(struct.pack('>i', h))
+        for x in range(4):
+            data[x+4] = width[x]
+            data[x+8] = height[x]
+        crc32result = binascii.crc32(data) & 0xffffffff
+        if crc32result == crc32key:
+            print(width,height)
+            newpic = bytearray(fr)
+            for x in range(4):
+                newpic[x+16] = width[x]
+                newpic[x+20] = height[x]
+            fw = open(file+'.png','wb')
+            fw.write(newpic)
+            fw.close
+            sys.exit()
 ```
 
 ### 图片取征 Stegsolve
@@ -126,11 +162,13 @@ convert -delay 3 *.png output.gif
 百度识图就算人物脸部不全，也可以识别试试
 
 ## 文件
->不要相信任何后缀类型。遇到一道题，虽然后缀是 zip，但实际是 word，应该改为 docx 格式，所以 zip 后缀也不能相信。
->
->efi 是 Unix 的可执行文件
->
->evt 是 Windows 的日志文件（好像需要 win 7 ?）
+- 不要相信任何后缀类型。遇到一道题，虽然后缀是 zip，但实际是 word，应该改为 docx 格式，所以 zip 后缀也不能相信。
+
+- efi 是 Unix 的可执行文件
+
+- evt 是 Windows 的日志文件（好像需要 win 7 ?）
+
+- 文件名可能是一个隐藏提示。（如 91 可能是 base91）
 
 ### 查看文件类型
 用 file 命令识别下是什么文件 (不能完全相信 file)
@@ -400,6 +438,12 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 ### .dat 文件
 
 开源的微信 Dat 文件(.dat)解码器 http://github.com/PiaoZhenJia/WeChatDatFileDecoder
+
+### GPS 数据流
+
+先将 txt 转为 kml 格式 https://www.gpsvisualizer.com/map_input
+
+再用 VS Code 打开 kml 文件，使用 Geo Data Viewer 插件可以绘制地图轨迹
 
 ## 文本
 

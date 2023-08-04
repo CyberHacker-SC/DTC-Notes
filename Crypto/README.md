@@ -147,10 +147,12 @@ print(result)
 备用工具: CTF-Tools
 
 #### 问题
-- 软件的 base58 有问题
+- 软件的 base58、base91 有问题。[base91](https://www.dcode.fr/base-91-encoding)
 - Brainfuck 有问题
 
 ### 肉眼识别密文类型
+
+- 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit)
 
 #### 摩斯电码
 
@@ -213,6 +215,9 @@ print(text)
 
 
 #### ook
+
+遇到类似的，可能把 Ook 替换为了其他字母，要能反应过来是 ook 密码
+
 形如
 
 ```
