@@ -193,6 +193,14 @@ file 文件名
 | doc/xls       | D0 CF 11 E0          |
 | pdf           | 25 50 44 46 2D 31 2E |
 
+### Hex
+
+右键查看 Hex，优先使用 010 Editor
+
+遇到过一道题，flag 藏在 Hex 中，构成图形，如下:
+
+![](static/img/hex_img.jpg)
+
 ### txt
 
 txt 文件有可能可以下滑，信息藏在最下面

