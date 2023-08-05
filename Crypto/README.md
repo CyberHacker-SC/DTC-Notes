@@ -3,13 +3,40 @@
 ## 密文解码
 
 - 如果看起来像 base，可能是多层嵌套 base，用其他软件解可能都会报错，这时选择 basetrack 自动接码。
+- 如果遇到一串十进制编码，一般可以先转为十六进制，再十六进制可以转为字符串还是图片
+- 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit)
 
 ### ciphey
 > 先尝试 ciphey -t "Encrypted input"
 
 另外，如果能看出密钥，这种可能使用 AES 算法
 
+### 进制转换
+
+#### 十进制转其他
+
+如需转回十进制，用 int(text)
+
+##### 十进制转十六进制
+
+```python
+hex(3207357)
+```
+
+##### 十进制转二进制
+
+```python
+bin(3207357)
+```
+
+##### 十进制转八进制
+
+```python
+oct(3207357)
+```
+
 ### base 格式
+
 > 看到很长一串，可能是图片的 base64
 >
 > 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别
@@ -150,9 +177,11 @@ print(result)
 - 软件的 base58、base91 有问题。[base91](https://www.dcode.fr/base-91-encoding)
 - Brainfuck 有问题
 
-### 肉眼识别密文类型
+### CTF-Tools 识别编码
 
-- 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit)
+可以批量尝试不同的解密方式
+
+### 肉眼识别密文类型
 
 #### 摩斯电码
 

