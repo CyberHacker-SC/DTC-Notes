@@ -223,8 +223,8 @@ strings webshell.pcapng | grep -E '.{1,10}\{.{1,50}\}.*'
 ### 文件内部映像提取
 
 #### binwalk
-> 如果 binwalk 查到了内部映象却分离不了，应该尝试 foremost
->
+- 如果 binwalk 查到了内部映象却分离不了，应该尝试 foremost
+- 如果 binwalk 可以分离内部映象，但是分离出的文件有问题，也可以尝试 foremost
 
 **查照内部映像**
 ```bash

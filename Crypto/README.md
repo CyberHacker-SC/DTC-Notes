@@ -259,7 +259,7 @@ Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
 
 形如下图
 
-![](../static/img/猪圈密码.png)
+![](static/img/猪圈密码.png)
 
 解密地址 http://www.metools.info/code/c90.html
 
@@ -323,11 +323,15 @@ U2FsdGVkX1/eK2855m8HM4cTq8Fquqtm6QDbcUu4F1yQpA==
 
 如下图
 
-![](../static/img/数独密码.png)
+![](static/img/数独密码.png)
 
 在线解密地址: https://shudu.gwalker.cn/
 
 解得结果后，所有数字连接起来就是密码
+
+#### 西卡语
+
+![](static/img/西卡语.png)
 
 ## 密码学及文本处理工具
 
