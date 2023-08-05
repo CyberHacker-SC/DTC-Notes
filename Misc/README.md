@@ -249,9 +249,9 @@ foremost -T ccc.pcap
 ### pcapng 格式
 
 #### http 类型
->可以全局搜索文件后缀，右键追踪 http 流
+- 可以全局搜索文件后缀，右键追踪 http 流。搜索 http 流后，可以按 command + f 搜索全文关键词
 
-**注入类**
+##### 注入类
 
 可以通过观察 HTTP 包的长度判断哪些是注入成功的，拼接收到的 ascii 码即可
 
@@ -333,6 +333,7 @@ crunch 11 11 -t 1391040%%%% -o 1.txt
 - 有的压缩文件只有内部的一个文件加密，可以手动试下其他文件能不能直接解压。
 - 优先使用 unzip 命令解压，unzip 会自动解压上面提到的未加密文件。(但是遇到过编码不支持 unzip 的情况，所以不能只局限于 unzip)
 - 如果 macOS 打不开压缩文件，尝试使用 Windows 虚拟机
+- 优先使用 `360 压缩` 来解压 rar 文件（因为不同的压缩软件解压出的结果可能不同）
 - 直接用 binwalk 可以分离一个压缩包里未加密的文件
 
 #### zip爆破
@@ -444,6 +445,16 @@ fcrackzip -b -c 1 -l 3 -v file.zip
 ```
 fcrackzip -v -D -p passwords.txt -u flag.zip
 ```
+
+### SNOW 隐写
+
+有一个 SNOW 隐写工具，貌似只能在 Windows 上用 https://darkside.com.au/snow/
+
+用法：
+
+![](static/img/snow隐写工具用法.png) 
+
+图中 -p 这里这段中文是密钥，接着那个文件是需要解密的文件
 
 ### .dat 文件
 

@@ -28,7 +28,9 @@ X-Forwarded-For: 127.0.0.1
         
 注意观察网站刷新的原因是否由 Cookie 等字段影响的？
 
-### 网页链接提取
+### 网页
+
+#### 网页链接提取
 
 自动提取网页中包含的链接，并排除黑名单后缀。（用于发现复杂网页包含的重要外链信息）
 
@@ -58,6 +60,12 @@ X-Forwarded-For: 127.0.0.1
     console.log(uniqueNonStaticUrls);
 })();
 ```
+
+##### JavaScript
+
+###### JSON 要用双引号
+
+你需要确保遵循正确的 JSON 格式，其中包括使用双引号而不是单引号。(不要弄成 Python 的字典)
 
 ## Linux
 
@@ -628,11 +636,13 @@ http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%C
 
 #### 执行系统命令
 
-##### system('ls')
+##### system('ls');
+
+- 由于 eval(system('ls');); 中执行的是一段 PHP 代码，所以最后要加分号
 
 再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')
 
-如果 system('cat flag.txt') 不成功，可以尝试如 system('cat f*.txt')。（或者可以尝试直接在浏览器访问这个文件）
+如果 system('cat flag.txt'); 不成功，可以尝试如 system('cat f*.txt');。（或者可以尝试直接在浏览器访问这个文件）
 
 #### 变量漏洞
 
@@ -941,10 +951,6 @@ ls
 ls /f*
 cat /f*
 ```
-
-
-
-
 
 #### 特殊函数的漏洞
 
