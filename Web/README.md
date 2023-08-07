@@ -152,7 +152,7 @@ cat `find`
 > 端口扫描工具
 
 ## 文件
-> 自己寻找文件时，要优先想到代码审计，查看 index.php 是什么内容
+- 看到 static 就联想到 Nginx 的目录穿越
 
 ### 目录扫描
 
@@ -292,9 +292,27 @@ python sqlmap.py -u http://61.147.171.105:56766/join.ok.php --data="username=a&p
 #### 万能密码表
 - 有时候 sqlmap 无法使用，该方法可以登录进去
 
+##### 通用方法
+
 ```url
 http://xxx/?username=admin'or'1'='1&password=123456'or'1'='1
 ```
+
+##### 绕过 PHP 的 md5()
+
+举例
+
+```sql
+select * from 'admin' where password=md5($pass,true)
+```
+
+可使用 pass=ffifdyop 来绕过
+
+原因：看了大佬博客，这个可以用`ffifdyop`绕过，绕过原理是：
+`ffifdyop` 这个字符串被 md5 哈希了之后会变成 `276f722736c95d99e921722cf9ed621c`，这个字符串前几位刚好是 ' `or '6`
+而 Mysql 刚好又会把 hex 转成 ascii 解释，因此拼接之后的形式是 `select * from 'admin' where password='' or '6xxxxx'`，等价于 or 一个永真式，因此相当于万能密码，可以绕过md5()函数。
+
+果然，我们提交之后就绕过了这个，来到了另一个页面
 
 #### 常用注入语句
 
@@ -361,13 +379,15 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 ### PHP
 
 - index.php 的默认路径是 /var/www/html/index.php
-- 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入
-- 看清楚题目是 `$_GET` 还是 `$_POST` 。提交 POST 方法时注意看参数名写好了没有
+- 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
+- 即便是 PHP 的题，也要有看源码和 HTTP headers 的习惯
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
 - 适用 include 包含文件时，如果不显示文件内容，记得适用伪协议
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - SSRF
+  - 常用套路 file:///etc/password ; file:///flag
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
+
 
 #### PHP 绕过普通正则表达式
 
@@ -709,7 +729,7 @@ s214587387a
 在这个例子中，我们需要找到两个字符串，一个只包含字母，一个只包含数字，它们的 md5 哈希值相等。
 这样的字符串对已经被找到了，比如 '240610708' 和 'QNKCDZO'。这两个字符串的 md5 哈希值都是 '0e462097431906509019562988736854'。
 ```
-如果前一种方法不行，利用 md5 无法处理数组的特性绕过。(sha1 也无法处理数组类型，也适用此方法)
+如果前一种方法不行，利用 PHP 的 md5() 无法处理数组的特性绕过。(sha1 也无法处理数组类型，也适用此方法)
 ```
 http://xxx/?v1[]=1&v2[]=2
 ```
@@ -852,10 +872,10 @@ O:4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ```
 
-#### Gopher 注入 RCE 漏洞
+#### Gopherus 注入 RCE 漏洞
 
 - 核心是后台可以请求 url 链接，在这里使用 Gopher 注入代码
-- 已经安装在 pt-ctf 的 Docker 容器中
+- 已经安装在 py-ctf 的 Docker 容器中
 
 ##### 打无密码 MySQL
 
