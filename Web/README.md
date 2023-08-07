@@ -356,29 +356,31 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 ## 代码注入
 
 - `/etc/passwd` 是一个在 Unix 和类 Unix 系统中的系统文件，用于存储所有用户的基本信息。可以用该文件来测试 Web 网站是否暴露了目录。（有时候网站暴露的目录只能用相对路径访问，如 ../../../../etc/passwd）
+- 题目中给出的文件名可能总是有用的，想办法将题目给出的文件都读取到
 
 ### PHP
 
 - index.php 的默认路径是 /var/www/html/index.php
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入
 - 看清楚题目是 `$_GET` 还是 `$_POST` 。提交 POST 方法时注意看参数名写好了没有
-- 当 system('ls'); 被绕过时，可以用 passthru("ls"); 代替。再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')、highlight_file('flag.txt')
-- 当空格和 cat 被绕过，可以用 %09 替代空格，${IFS} 也可以用于替换空格。tac 替代 cat。
-- $@ 可替代空字符串，用于绕过正则
-- %27%27 代表 '' 空字符串，可以绕过正则的 flag 匹配
-- 如果 ; 被过滤，可以用 ?> 代替
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
-- 注意 include、eval、system 的区别。执行了代码记得加 ;
+- 适用 include 包含文件时，如果不显示文件内容，记得适用伪协议
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - SSRF
-- - 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
 
 #### PHP 绕过普通正则表达式
 
-${IFS} 用于替换空格
+- ${IFS} 和 %09 用于替换空格
 
-$@ 替代空字符串
+- $@ 和 %27%27 替代空字符串
+
+- 如果 ; 被过滤，可以用 ?> 代替
+
+- 当 system('ls'); 被绕过时，可以用 passthru("ls"); 代替。再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')、highlight_file('flag.txt')
+
+- 当 cat 被绕过，用 tac 替代
+- 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0
 
 #### 文件漏洞
 
@@ -1363,6 +1365,32 @@ if (isset($_GET['var'])) {
 } else { 
     highlight_file("index.php"); 
 } 
+?>
+```
+
+### NSS [ZJCTF 2019]NiZhuanSiWei
+
+https://www.ctfer.vip/problem/22
+
+```php
+<?php  
+$text = $_GET["text"];
+$file = $_GET["file"];
+$password = $_GET["password"];
+if(isset($text)&&(file_get_contents($text,'r')==="welcome to the zjctf")){
+    echo "<br><h1>".file_get_contents($text,'r')."</h1></br>";
+    if(preg_match("/flag/",$file)){
+        echo "Not now!";
+        exit(); 
+    }else{
+        include($file);  //useless.php
+        $password = unserialize($password);
+        echo $password;
+    }
+}
+else{
+    highlight_file(__FILE__);
+}
 ?>
 ```
 
