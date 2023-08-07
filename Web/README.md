@@ -382,7 +382,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
 - 即便是 PHP 的题，也要有看源码和 HTTP headers 的习惯
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
-- 适用 include 包含文件时，如果不显示文件内容，记得适用伪协议
+- 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - SSRF
   - 常用套路 file:///etc/password ; file:///flag
@@ -489,6 +489,16 @@ GIF89a
 (经测试，a.jpg 必须在 .user.ini 之后上传)
 
 ##### 伪协议
+
+```
+问：PHP 中为什么 include('flag.php') 不显示内容，但是 include('php://filter/convert.base64-encode/resource=flag.php') 会显示内容？
+
+答：在 PHP 中，`include('flag.php')` 语句会执行 `flag.php` 文件中的 PHP 代码。如果 `flag.php` 文件中没有任何输出（例如，echo 或 print 语句），那么你不会在浏览器中看到任何内容。
+
+另一方面，`include('php://filter/convert.base64-encode/resource=flag.php')` 语句使用了 PHP 的流过滤器。`php://filter` 是 PHP 的一种特殊的流封装协议，它允许你使用 PHP 的流过滤器处理数据流。
+
+在这种情况下，`convert.base64-encode` 过滤器被应用于 `flag.php` 文件的内容。这个过滤器会将文件内容编码为 Base64，然后输出。这意味着你会看到 `flag.php` 文件内容的 Base64 编码形式，而不是执行 PHP 代码。
+```
 
 ###### convert.base64-encode
 
