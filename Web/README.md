@@ -77,11 +77,11 @@ X-Forwarded-For: 127.0.0.1
 })();
 ```
 
-##### JavaScript
+#### JavaScript
 
 ###### JSON 要用双引号
 
-你需要确保遵循正确的 JSON 格式，其中包括使用双引号而不是单引号。(不要弄成 Python 的字典)
+你需要确保遵循正确的 JSON 格式，其中包括使用双引号而不是单引号。(不要当成 Python 的字典)
 
 ## Linux
 
