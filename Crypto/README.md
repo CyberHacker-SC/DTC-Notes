@@ -307,6 +307,16 @@ U2FsdGVkX1/eK2855m8HM4cTq8Fquqtm6QDbcUu4F1yQpA==
 
 需要一个密钥，在线解密地址: https://www.sojson.com/encrypt_rabbit.html
 
+#### RC4
+
+形如
+
+```
+U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
+```
+
+需要一个密钥，在线解密地址: https://www.sojson.com/encrypt_rc4.html
+
 #### 音乐符号密文
 
 形如
