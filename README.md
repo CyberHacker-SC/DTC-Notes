@@ -15,6 +15,8 @@ CTF Run
 
 ## Flag 正则匹配
 
+- 正则表达式可以配合 Burp Suit 使用，全局搜索 flag 字符串
+
 ### 匹配类似 flag{asdas_sd2} 的字符串
 
 #### 规范格式匹配
