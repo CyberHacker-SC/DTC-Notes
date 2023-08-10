@@ -250,6 +250,8 @@ foremost -T ccc.pcap
 
 #### http 类型
 - 可以全局搜索文件后缀，右键追踪 http 流。搜索 http 流后，可以按 command + f 搜索全文关键词
+- `http contains "关键词"` 这个命令可以筛选关键词。单独的数据包中无法筛选关键词，只能复制出来筛选
+- 可以直接解码 JWT 查看用户名等信息，JWT 解码工具: https://www.box3.cn/tools/jwt.html
 
 ##### 注入类
 

