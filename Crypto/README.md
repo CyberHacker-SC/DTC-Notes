@@ -37,11 +37,11 @@ oct(3207357)
 
 ### base 格式
 
-> 看到很长一串，可能是图片的 base64
->
-> 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别
+- 看到很长一串，可能是图片的 base64
 
-**basetrack**
+- 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别
+
+#### basetrack
 
 **普通解码**
 ```bash
@@ -54,11 +54,9 @@ python3 basecrack.py -b 编码文本
 python basecrack.py --magic -b 编码文本
 ```
 
-**base64 转图片**
+#### base64 转图片
 
-```bash
 https://tool.jisuapi.com/base642pic.html
-```
 
 ### Hash 碰撞
 
