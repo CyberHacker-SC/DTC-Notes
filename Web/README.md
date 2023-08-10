@@ -1119,9 +1119,19 @@ cat /f*
 
 - 如果遇到函数不认识，可以在本地用 php 执行一下，看看效果。
 
-##### 弱类型语言
+##### PHP 解释器行为
+
+###### 弱类型语言
 
 在PHP中，当字符串被用在数学运算中时，PHP会自动将其转换为数值。
+
+###### 自动处理变量单词间的空格
+
+当 show_source 被正则过滤时，为什么用 show+source 代替 show_source？
+
+在 URL 编码中，加号（+）是一个特殊字符，代表一个空格。所以，show+source 在 URL 中实际上代表 show source。
+
+当 PHP 解析 URL 中的查询字符串（query string）时，它会将加号（+）解析为一个空格。所以，show+source 会被 PHP 解析为 show source。然后，PHP 会将这个字符串转换为一个变量名，去掉空格，所以 show source 被转换为 show_source。
 
 ##### PHP 的数组可以和键值对很像
 
@@ -1142,11 +1152,73 @@ echo $c["foo"]; // 输出 "bar"
 
 在 PHP 中，你可以使用科学计数法来表示非常大或非常小的数字。科学计数法是一种将数字表示为基数和指数的方式。例如，3000 可以表示为 3e3，这意味着 3 乘以 10 的 3 次方。
 
+##### $_SERVER
+
+###### $_SERVER['PHP_SELF']
+
+`$_SERVER['PHP_SELF']` 是一个 PHP 超全局变量，用于获取当前正在执行的脚本文件的文件名。它返回当前脚本的相对路径，相对于服务器的文档根目录。
+
+当用户在浏览器中访问名为 `example.php` 的 PHP 脚本时，`$_SERVER['PHP_SELF']` 的返回格式类似于 `$_SERVER['REQUEST_URI']`，都是相对于服务器的文档根目录的相对路径。
+
+假设用户访问的是 `https://example.com/example.php`，那么 `$_SERVER['PHP_SELF']` 的返回值将是：
+
+```
+/example.php
+```
+
+如果用户访问的是 `https://example.com/subfolder/example.php?a=1`，那么 `$_SERVER['PHP_SELF']` 的返回值将是：
+
+```
+/subfolder/example.php
+```
+
+请注意，`$_SERVER['PHP_SELF']` 不包含查询字符串部分，它只返回当前正在执行的脚本文件的路径和文件名。如果您需要获取完整的 URL 路径，包括查询字符串部分，可以使用 `$_SERVER['REQUEST_URI']`。在这种情况下，`$_SERVER['REQUEST_URI']` 的返回值将是 `/subfolder/example.php?a=1`。
+
+使用 `$_SERVER['PHP_SELF']` 时也需要进行适当的验证和过滤，以确保安全性。
+
+---
+
+`$_SERVER['PHP_SELF']` 和 `basename()` 的一个漏洞：
+
+当用户访问的是 `https://example.com/index.php/utils.php/%a0?code=1`，那么 `$_SERVER['PHP_SELF']` 的返回值将是：
+
+```
+/index.php/utils.php/%a0
+```
+
+解释：当你访问 `/index.php/utils.php` 时，实际上你正在访问 `index.php` 这个文件，而 `/utils.php` 被视为 "路径信息"（path info）。这是因为在 PHP 中，路径信息是可以通过 `$_SERVER['PATH_INFO']` 来获取的，而不是直接作为文件名处理的。所以当你调用 `basename($_SERVER['PHP_SELF'])` 时，它实际上会返回 `index.php`，因为这是正在执行的脚本文件。
+
+当你访问 `/index.php/utils.php/%a0` 时，情况就变了。`%a0` 是一个 URL 编码的非打印字符，PHP 在处理 URL 时会忽略它。因此，`utils.php/%a0` 实际上被解析为 `utils.php`。这就使得 `basename($_SERVER['PHP_SELF'])` 返回 `utils.php`，而不是 `index.php`。
+
+这是因为 PHP 在处理 URL 时，会将 `%a0` 之后的部分视为路径信息，而将 `%a0` 之前的部分视为文件名。所以在这种情况下，`utils.php/%a0` 被解析为 `utils.php`，并且 `basename($_SERVER['PHP_SELF'])` 会返回 `utils.php`。
+
+###### $_SERVER['REQUEST_URI']
+
+`$_SERVER['REQUEST_URI']` 是一个 PHP 超全局变量，用于获取当前请求的 URI（Uniform Resource Identifier），包括查询字符串（如果有）。它返回用户在浏览器中请求的完整 URL 路径。
+
+下面是一个示例，演示如何使用 `$_SERVER['REQUEST_URI']`：
+
+```php
+<?php
+echo $_SERVER['REQUEST_URI'];
+?>
+```
+
+假设用户在浏览器中访问 `https://example.com/products.php?id=123`，那么上述示例将输出：
+
+```
+/products.php?id=123
+```
+
+`$_SERVER['REQUEST_URI']` 可以用于获取当前请求的路径和查询字符串，以便在处理 URL 时进行操作。请注意，`$_SERVER['REQUEST_URI']` 返回的是相对于服务器的文档根目录的相对路径，而不是绝对路径。
+
+需要注意的是，`$_SERVER['REQUEST_URI']` 的值是由用户提供的，并且可能受到恶意用户的攻击。在使用 `$_SERVER['REQUEST_URI']` 时，务必进行适当的验证和过滤，以防止安全漏洞，比如跨站脚本攻击（XSS）和路径遍历攻击。
+
 ##### md5
 
 `md5('a')` 返回的是一个32字符的十六进制数，等效于 Python 中的 `hashlib.md5('a'.encode()).hexdigest()`
 
-###### array_search
+##### array_search
 
 array_ search这个函数。先看看下面两个判断吧，array_ seach的结
 果b不能是假，也就是Array [n]中必须有元素是DGGJ,同时遍历Array [n]之后对数组值
@@ -1512,5 +1584,39 @@ else{
     highlight_file(__FILE__);
 }
 ?>
+```
+
+NSS [鹤城杯 2021]EasyP
+
+https://www.ctfer.vip/problem/463
+
+```php
+<?php
+include 'utils.php';
+
+if (isset($_POST['guess'])) {
+    $guess = (string) $_POST['guess'];
+    if ($guess === $secret) {
+        $message = 'Congratulations! The flag is: ' . $flag;
+    } else {
+        $message = 'Wrong. Try Again';
+    }
+}
+
+if (preg_match('/utils\.php\/*$/i', $_SERVER['PHP_SELF'])) {
+    exit("hacker :)");
+}
+
+if (preg_match('/show_source/', $_SERVER['REQUEST_URI'])){
+    exit("hacker :)");
+}
+
+if (isset($_GET['show_source'])) {
+    highlight_file(basename($_SERVER['PHP_SELF']));
+    exit();
+}else{
+    show_source(__FILE__);
+}
+?> 
 ```
 
