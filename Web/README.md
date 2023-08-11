@@ -45,6 +45,8 @@ X-Forwarded-For: 127.0.0.1
 ### 网页
 
 - 当 Web 页面的地址更换 (如 /index.php 变为 /a.php)，相应的 get / post 请求应该即使切换到 /a.php
+- 见过在一个很长的 js 文件中藏了一个注释，例如 /f@k3f1ag.php
+- 看到类似 `(+[![]]+[])[+[]]+` 的密文要联想到 jsfuck，可以直接在控制台执行
 
 #### 网页链接提取
 
@@ -414,7 +416,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 - index.php 的默认路径是 /var/www/html/index.php
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
-- eval() 用于执行 PHP 代码。exec() 用于执行 shell 命令，system() 也用于执行 shell 命令，但是 system() 会回显结果，exec() 不会回显。
+- 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。寻找真实源码或其他突破口
 - 即便是 PHP 的题，也要有看源码和 HTTP headers 的习惯
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
 - include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端
@@ -537,7 +539,7 @@ GIF89a
 
 ##### 伪协议
 
-- 网页上显示的未必是真实源码，也许题目只过滤了 flag.php，并没有过滤 index.php
+- 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。也许题目只过滤了 flag.php，并没有过滤 index.php
 
 ```
 问：PHP 中为什么 include('flag.php') 不显示内容，但是 include('php://filter/convert.base64-encode/resource=flag.php') 会显示内容？
@@ -1172,6 +1174,10 @@ echo $c["foo"]; // 输出 "bar"
 ##### 科学计数法
 
 在 PHP 中，你可以使用科学计数法来表示非常大或非常小的数字。科学计数法是一种将数字表示为基数和指数的方式。例如，3000 可以表示为 3e3，这意味着 3 乘以 10 的 3 次方。
+
+##### eval、exec、system 的区别
+
+eval() 用于执行 PHP 代码。exec() 用于执行 shell 命令，system() 也用于执行 shell 命令，但是 system() 会回显结果，exec() 不会回显
 
 ##### $_SERVER
 
