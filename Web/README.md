@@ -417,6 +417,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 - eval() 用于执行 PHP 代码。exec() 用于执行 shell 命令，system() 也用于执行 shell 命令，但是 system() 会回显结果，exec() 不会回显。
 - 即便是 PHP 的题，也要有看源码和 HTTP headers 的习惯
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
+- include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - SSRF
@@ -536,6 +537,8 @@ GIF89a
 
 ##### 伪协议
 
+- 网页上显示的未必是真实源码，也许题目只过滤了 flag.php，并没有过滤 index.php
+
 ```
 问：PHP 中为什么 include('flag.php') 不显示内容，但是 include('php://filter/convert.base64-encode/resource=flag.php') 会显示内容？
 
@@ -638,6 +641,8 @@ http://xxx/?file=data://text/plain,hello ctf
 ```
 
 ###### POST 方法注入字符串到文件流
+
+- php://input 实际作用是直接访问原始的请求体数据，而不是经过 PHP 解析后的表单数据。（也就是获取 html 表单的原始字符串）
 
 适用于 file_get_contents()、include()
 
@@ -1634,5 +1639,17 @@ if (isset($_GET['show_source'])) {
     show_source(__FILE__);
 }
 ?> 
+```
+
+NSS [鹏城杯 2022]简单包含
+
+https://www.ctfer.vip/problem/2422
+
+这道题有一定的误导性
+
+```php
+highlight_file(__FILE__);
+include($_POST["flag"]);
+//flag in /var/www/html/flag.php;
 ```
 

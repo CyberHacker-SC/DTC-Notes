@@ -530,3 +530,5 @@ dd师父父鸭❤️，想找一个男师父来宠我辽 ٩(๑‌‌‌‌‍�
 
 异或: Tools-Hex Operations-Binary Xor ，输入要异或的内容即可，然后点击保存
 
+复制 16 进制字段的内容: command + shift + c
+
