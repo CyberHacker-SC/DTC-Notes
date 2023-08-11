@@ -414,6 +414,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 - index.php 的默认路径是 /var/www/html/index.php
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
+- eval() 用于执行 PHP 代码。exec() 用于执行 shell 命令，system() 也用于执行 shell 命令，但是 system() 会回显结果，exec() 不会回显。
 - 即便是 PHP 的题，也要有看源码和 HTTP headers 的习惯
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议
@@ -433,7 +434,14 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 - 当 system('ls'); 被绕过时，可以用 passthru("ls"); 代替。再提供一种思路，除了用 system 外，还可以直接 show_source('flag.php')、highlight_file('flag.txt')
 
-- 当 cat 被绕过，用 tac 替代
+- Linux 命令绕过
+
+  当 `cat` 被绕过，用 `tac` 替代
+
+  `ls` 可用 `dir`、`l's'`、`l\s` 替代（如果遇到其他命令被过滤，也可以像这样用 `'` 或 `\` 来绕过）
+
+  写入文件的命令  `ls > 1.txt`  用  `ls | tee 1.txt`  替代。其中 `>` 是覆盖写入，`tee` 是追加写入
+
 - 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0
 
 #### 文件漏洞
