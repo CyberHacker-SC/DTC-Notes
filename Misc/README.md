@@ -152,7 +152,38 @@ python3.6 bwmforpy3.py decode 1.png 2.png 3.png
 convert cake.gif cake.png
 ```
 
+#### 自动提取 gif 中藏的二维码
+
+```python
+import imageio
+from PIL import Image
+from pyzbar.pyzbar import decode
+
+
+def main():
+    # 读取 GIF 图像
+    path = input('请输入 gif 的路径:')
+    gif = imageio.mimread(path, memtest="512MB")
+
+    # 遍历 GIF 中的每一帧
+    for i, frame in enumerate(gif):
+        # 将帧转换为 PIL 图像
+        pil_image = Image.fromarray(frame)
+        
+        # 尝试解码二维码
+        decoded_objects = decode(pil_image)
+        
+        # 如果在帧中找到二维码，打印其内容并停止
+        for obj in decoded_objects:
+            print(f"在帧 {i} 中找到二维码，内容为：{obj.data.decode('utf-8')}")
+
+
+if __name__ == '__main__':
+    main()
+```
+
 #### 合并 gif
+
 ```bash
 convert -delay 3 *.png output.gif 
 # 上述命令可以将当前目录下的所有 *.png 文件合成并生成 output.gif 文件。其中在 output.gif 文件中，每帧的间隔时间可以通过 -delay 参数来设置。
@@ -252,6 +283,7 @@ foremost -T ccc.pcap
 - 可以全局搜索文件后缀，右键追踪 http 流。搜索 http 流后，可以按 command + f 搜索全文关键词
 - `http contains "关键词"` 这个命令可以筛选关键词。单独的数据包中无法筛选关键词，只能复制出来筛选
 - 可以直接解码 JWT 查看用户名等信息，JWT 解码工具: https://www.box3.cn/tools/jwt.html
+- webshell (PHP) 的执行路径通常是 /var/www/html/ 的相对路径
 
 ##### 注入类
 
