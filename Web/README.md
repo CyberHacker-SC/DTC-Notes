@@ -1288,6 +1288,10 @@ echo mt_rand();
 
 mt_srand(372619038) 设置了 mt_rand() 的种子为 372619038，这意味着接下来的 mt_rand() 函数将会返回一个固定的值
 
+##### phpinfo
+
+在 `User/Group` 栏可以看到当前用户名（当前用户名即权限，如 `root` 或其他任何用户名）
+
 ### tplmap
 
 > Python 注入(PHP 也有 SSTI)
