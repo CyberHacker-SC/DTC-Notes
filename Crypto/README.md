@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
 ##### MD5 强碰撞（Python 和 PHP ===）
 
-Python
+###### Python
 
 ```python
 import hashlib
@@ -161,7 +161,31 @@ if __name__ == '__main__':
     main()
 ```
 
-PHP
+###### PHP
+
+原版
+
+```php
+<?php
+
+// 第一个字符串
+$str1 = "d131dd02c5e6eec4693d9a0698aff95c2fcab58712467eab4004583eb8fb7f8955ad340609f4b30283e488832571415a085125e8f7cdc99fd91dbdf280373c5bd8823e3156348f5bae6dacd436c919c6dd53e2b487da03fd02396306d248cda0e99f33420f577ee8ce54b67080a80d1ec69821bcb6a8839396f9652b6ff72a70";
+
+// 第二个字符串
+$str2 = "d131dd02c5e6eec4693d9a0698aff95c2fcab50712467eab4004583eb8fb7f8955ad340609f4b30283e4888325f1415a085125e8f7cdc99fd91dbd7280373c5bd8823e3156348f5bae6dacd436c919c6dd53e23487da03fd02396306d248cda0e99f33420f577ee8ce54b67080280d1ec69821bcb6a8839396f965ab6ff72a70";
+
+// 计算第一个字符串的MD5哈希值
+$hash1 = md5(hex2bin($str1));
+
+// 计算第二个字符串的MD5哈希值
+$hash2 = md5(hex2bin($str2));
+
+echo $hash1 === $hash2;
+
+?>
+```
+
+Web 优化版
 
 这里利用了 url 编码，以便传至网页
 
@@ -177,7 +201,7 @@ $str2 = "%D11%DD%02%C5%E6%EE%C4i%3D%9A%06%98%AF%F9%5C%2F%CA%B5%07%12F%7E%AB%40%0
 $str1 = urldecode($str1);
 $str2 = urldecode($str2);
 
-echo md5($str1) === md5($str2)
+echo md5($str1) === md5($str2);
 
 ?>
 ```
