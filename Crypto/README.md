@@ -63,7 +63,9 @@ https://tool.jisuapi.com/base642pic.html
 - MD5算法生成的哈希值通常以16进制的形式表示。这是因为MD5算法生成的原始结果是一个128位的二进制数，这个数包含的信息量非常大，如果直接以二进制或者十进制的形式表示，将会非常长。因此，通常会将这个二进制数转换为16进制来表示，这样可以大大减少表示的长度。一个128位的二进制数可以转换为一个32位的16进制数，这就是我们通常看到的MD5哈希值的形式。
 - 有一些 hash 碰撞题目给的条件很多，实际并不难。按题目给的条件编写碰撞代码，简单地遍历数字即可得到结果
 
-#### 通用碰撞模版
+#### MD5 碰撞
+
+##### 通用碰撞模版
 
 ```python
 import hashlib
@@ -83,7 +85,9 @@ if __name__ == '__main__':
     main()
 ```
 
-#### 普通碰撞套路示例
+##### 普通碰撞套路示例
+
+（这只是一个示例提示，这段代码不重要，以上一个模版为准）
 
 有一些 hash 碰撞题目给的条件很多，实际并不难。按题目给的条件编写碰撞代码，简单地遍历数字即可得到结果，例如：
 
@@ -105,9 +109,7 @@ if __name__ == '__main__':
     main()
 ```
 
-
-
-#### 带前缀的 MD5 碰撞
+##### 带前缀的 MD5 碰撞
 
 运行以下脚本，解得后缀
 
@@ -130,6 +132,57 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+##### MD5 强碰撞（Python 和 PHP ===）
+
+Python
+
+```python
+import hashlib
+
+
+def main():
+    # 第一个字符串
+    str1 = "d131dd02c5e6eec4693d9a0698aff95c2fcab58712467eab4004583eb8fb7f8955ad340609f4b30283e488832571415a085125e8f7cdc99fd91dbdf280373c5bd8823e3156348f5bae6dacd436c919c6dd53e2b487da03fd02396306d248cda0e99f33420f577ee8ce54b67080a80d1ec69821bcb6a8839396f9652b6ff72a70"
+
+    # 第二个字符串
+    str2 = "d131dd02c5e6eec4693d9a0698aff95c2fcab50712467eab4004583eb8fb7f8955ad340609f4b30283e4888325f1415a085125e8f7cdc99fd91dbd7280373c5bd8823e3156348f5bae6dacd436c919c6dd53e23487da03fd02396306d248cda0e99f33420f577ee8ce54b67080280d1ec69821bcb6a8839396f965ab6ff72a70"
+
+    # 计算第一个字符串的MD5哈希值
+    hash1 = hashlib.md5(bytes.fromhex(str1)).hexdigest()
+
+    # 计算第二个字符串的MD5哈希值
+    hash2 = hashlib.md5(bytes.fromhex(str2)).hexdigest()
+
+    print(hash1 == hash2)
+    
+
+if __name__ == '__main__':
+    main()
+```
+
+PHP
+
+这里利用了 url 编码，以便传至网页
+
+```php
+<?php
+
+// 第一个字符串
+$str1 = "%D11%DD%02%C5%E6%EE%C4i%3D%9A%06%98%AF%F9%5C%2F%CA%B5%87%12F%7E%AB%40%04X%3E%B8%FB%7F%89U%AD4%06%09%F4%B3%02%83%E4%88%83%25qAZ%08Q%25%E8%F7%CD%C9%9F%D9%1D%BD%F2%807%3C%5B%D8%82%3E1V4%8F%5B%AEm%AC%D46%C9%19%C6%DDS%E2%B4%87%DA%03%FD%029c%06%D2H%CD%A0%E9%9F3B%0FW%7E%E8%CET%B6p%80%A8%0D%1E%C6%98%21%BC%B6%A8%83%93%96%F9e%2Bo%F7%2Ap";
+
+// 第二个字符串
+$str2 = "%D11%DD%02%C5%E6%EE%C4i%3D%9A%06%98%AF%F9%5C%2F%CA%B5%07%12F%7E%AB%40%04X%3E%B8%FB%7F%89U%AD4%06%09%F4%B3%02%83%E4%88%83%25%F1AZ%08Q%25%E8%F7%CD%C9%9F%D9%1D%BDr%807%3C%5B%D8%82%3E1V4%8F%5B%AEm%AC%D46%C9%19%C6%DDS%E24%87%DA%03%FD%029c%06%D2H%CD%A0%E9%9F3B%0FW%7E%E8%CET%B6p%80%28%0D%1E%C6%98%21%BC%B6%A8%83%93%96%F9e%ABo%F7%2Ap";
+
+$str1 = urldecode($str1);
+$str2 = urldecode($str2);
+
+echo md5($str1) === md5($str2)
+
+?>
+```
+
+
 
 ### RSA
 
