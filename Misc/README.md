@@ -202,6 +202,7 @@ convert -delay 3 *.png output.gif
 - evt 是 Windows 的日志文件（好像需要 win 7 ?）
 
 - 文件名可能是一个隐藏提示。（如 91 可能是 base91）
+- 如果一个目录下有繁多文件（尤其是项目源码），可以直接用 D 盾扫后门（macOS 用 wine 打开 D 盾）
 
 ### 查看文件类型
 用 file 命令识别下是什么文件 (不能完全相信 file)
@@ -503,9 +504,10 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 
 ### 音频文件
 
-可以用 Audacity 打开分析
+- 可以用 Audacity 打开分析
+- 将 Audacity 的音轨放大后，可能会混杂摩斯密码
 
-例题
+例题（仔细看转码规则！）
 
 ![](static/img/莫斯音频.jpg)
 
