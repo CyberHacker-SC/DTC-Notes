@@ -566,3 +566,9 @@ dd师父父鸭❤️，想找一个男师父来宠我辽 ٩(๑‌‌‌‌‍�
 
 复制 16 进制字段的内容: command + shift + c
 
+## 经典例题
+
+### NSS [SWPU 2020]找找吧
+
+https://www.ctfer.vip/problem/48
+
