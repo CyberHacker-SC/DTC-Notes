@@ -1423,7 +1423,18 @@ http://xxx/?name={%set%20xiahua=(lipsum|select|string|list).pop(24)%}
 {%print lipsum|attr(gb)|attr(gm)(oo)|attr(pp)(shell)|attr(dict(re=a,ad=a)|join)()%}
 ```
 
+#### 文件漏洞
 
+##### os.path.join()
+
+**绝对路径拼接漏洞** : `os.path.join(path,*paths)` 函数用于将多个文件路径连接成一个组合的路径。第一个函数通常包含了基础路径，而之后的每个参数被当作组件拼接到基础路径之后。 然而，这个函数有一个少有人知的特性，如果拼接的某个路径以 / 开头，那么包括基础路径在内的所有前缀路径都将被删除，该路径将视为绝对路径。例如
+
+```python
+    with open(os.path.join("uploads/", '/flag', "r") as f:
+        return f.read()
+```
+
+此时会返回 `/flag` 文件
 
 #### Unserializer Pickle
 
