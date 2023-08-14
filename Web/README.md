@@ -133,7 +133,16 @@ ping -c 4 127.0.0.1&cat 7672134566268.php| base64
 # 执行payload，将根目录下的flag文件内容作为扫描目标，并将扫描结果重定向到flag.txt文件中
 ```
 
+### Vim 恢复 .swp 文件
+
+```bah
+vim -r <filename>
+```
+
+Vim 将会打开一个恢复会话，显示最近编辑的内容。你可以检查恢复的内容，并使用 `:w` 命令保存到一个新文件中。
+
 ### 正则表达式工具
+
 通过正则表达式来生成文本
 
 https://onlinetexttools.com/generate-text-from-regex
