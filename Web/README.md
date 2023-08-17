@@ -1052,6 +1052,8 @@ http://xxx/?id=0b1111101000
 
 - w00m->{a}: 表示调用 w00m 对象的 a 方法，a 是方法名的字符串
 
+- `preg_match("/file|ftp|http|https|gopher|dict|\.\./i", $a)` 如果 $a 是一个类实例，该方法也能触发 `__toString()` 。（不要想当然认为只有 `echo` 会触发  `__toString()` ）
+
 - 一个 CVE 漏洞 ：当成员属性数目大于实际数目时可绕过 __wakeup 方法(CVE-2016-7124)
 
   举例：将实际生成的序列化字符串 `O:4:"xctf":1:{s:4:"flag";s:3:"111";}` 改为 `O:4:"xctf":2:{s:4:"flag";s:3:"111";}` 即可绕过 __wakeup()
