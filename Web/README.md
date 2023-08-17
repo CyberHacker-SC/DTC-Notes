@@ -1099,6 +1099,20 @@ O:4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ```
 
+##### PHP 魔术方法
+
+__destruct()，类的析构函数
+
+__wakeup()，执行unserialize()时，先会调用这个函数
+
+__toString()，类被当成字符串时的回应方法
+
+__invoke()，调用函数的方式调用一个对象时的回应方法
+
+__get()，获得一个类的成员变量时调用
+
+__set()，设置一个类的成员变量时调用
+
 #### Gopherus 注入 RCE 漏洞
 
 - 核心是后台可以请求 url 链接，在这里使用 Gopher 注入代码
