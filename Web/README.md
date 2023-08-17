@@ -461,6 +461,7 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
 - include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议
+- 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - SSRF
   - 常用套路 file:///etc/password ; file:///flag
@@ -536,12 +537,12 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 .htaccess 文件内容
 
 ```c
-<FilesMatch "xin.png">
+<FilesMatch "a.png">
 SetHandler application/x-httpd-php
 </FilesMatch>
 ```
 
-然后访问上传的 php 文件（xin.png）即可
+然后访问上传的 php 文件（a.png）即可
 
  ###### 更进一步的 .user.ini 绕过
 
@@ -871,14 +872,22 @@ http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%C
 
 如果 system('cat flag.txt'); 不成功，可以尝试如 system('cat f*.txt');。（或者可以尝试直接在浏览器访问这个文件）
 
-#### 变量漏洞
+#### 部分漏洞
 
 ##### 超级全局变量(输出所有全局变量的值)
 ```
 http://xxx/?p=GLOBALS
 ```
 
+##### %00截断
+
+在低于7.2.29的PHP版本7.2.x，低于7.3.16的7.3.x和低于7.4.4的7.4.x中，将 `get_headers()` 与用户提供的URL一起使用时，如果URL包含零（\ 0）字符，则URL将被静默地截断。这可能会导致某些软件对 `get_headers()` 的目标做出错误的假设，并可能将某些信息发送到错误的服务器。
+
+
+例如原地址 `http://node4.anna.nssctf.cn:28559/?url=http://www.ctfhub.com` 会被  `http://x/?url=http://127.0.0.1%00.ctfhub.com`  截断，而显示 `http://127.0.0.1` 的内容。
+
 #### 弱类型(==判断) 
+
 > 知识点
 
 **比较符**
