@@ -2,9 +2,9 @@
 
 ## 密文解码
 
-- 如果看起来像 base，可能是多层嵌套 base，用其他软件解可能都会报错，这时选择 basetrack 自动接码。
-- 如果遇到一串十进制编码，一般可以先转为十六进制，再十六进制可以转为字符串还是图片
-- 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit)
+- 如果看起来像 base，可能是多层嵌套 base，用其他软件解可能都会报错，这时选择 [basetrack](####basetrack) 自动接码 (TomatoTools 识别不了)
+- 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit) 。除此之外，如果这段密文很长，还可能是[图片的 base64](####base64 转图片) (TomatoTools 识别不了)
+- 如果遇到一串十进制编码，一般可以先转为十六进制，再看看十六进制可以转为字符串还是图片
 - 看到 16 进制（如 `d43963e92b012aab` 可以联想到反查 md5 [通过在线网站查询]）
 
 ### ciphey
@@ -58,6 +58,34 @@ python basecrack.py --magic -b 编码文本
 #### base64 转图片
 
 https://tool.jisuapi.com/base642pic.html
+
+本地转换方法:
+
+```python
+import base64
+from PIL import Image
+from io import BytesIO
+
+def base64_to_image(base64_str, image_path):
+    # 如果 base64 字符串不是 4 的倍数，添加等号
+    padding = len(base64_str) % 4
+    if padding:
+        base64_str += "=" * (4 - padding)
+
+    # 将 base64 字符串解码为二进制数据
+    base64_data = base64.b64decode(base64_str)
+
+    # 使用 PIL 库将二进制数据转换为图像
+    image = Image.open(BytesIO(base64_data))
+
+    # 保存图像
+    image.save(image_path)
+
+# 这里替换为你的 base64 字符串 (由于长度限制，此处不能通过终端输入，只能写在 py 文件里或读文件)
+base64_str = '...'
+image_path = 'output.png'  # 输出的图片路径
+base64_to_image(base64_str, image_path)
+```
 
 ### Hash 碰撞
 
