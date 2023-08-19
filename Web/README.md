@@ -183,10 +183,30 @@ http://xxx/?ip=127.0.0.1;echo$IFS$9Y2F0IGZsYWcucGhw|base64$IFS$9-d|sh
 
 ### Linux 基本命令
 
-查看当前登录用户名
+#### 查看当前登录用户名
 
 ```bash
 whoami
+```
+
+#### 查询是目录还是文件
+
+```bash
+ls -l 目录名 或 文件名
+```
+
+#### 查询所有文件名包含 flag 的路径，并忽视错误信息
+
+```bash
+find / -type f 2>/dev/null | grep -Ei 'flag'
+```
+
+优化版
+
+该命令可以查询类似 `ffffllllaaaagggg` 的文件，最多不超过5个字符重复
+
+```bash
+find / -type f 2>/dev/null | grep -Ei 'f{1,5}l{1,5}a{1,5}g{1,5}'
 ```
 
 ## 端口扫描
@@ -540,6 +560,7 @@ while True:
 ### PHP
 
 - index.php 的默认路径是 /var/www/html/index.php
+- 拿到 shell 后，要考虑 flag 可能在一个文件中，也可能在环境变量 `env` 中
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
 - 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。寻找真实源码或其他突破口
 - 即便是代码审计的题，也要有看源码和 HTTP headers 的习惯
@@ -861,6 +882,8 @@ http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
 ```
 
 ##### ThinkPHP 注入漏洞
+
+- ThinkphpGUI 有一个坑，该工具执行命令时并不能区分目录和文件，需要手工鉴别。
 
 使用 https://github.com/Lotus6/ThinkphpGUI 查询漏洞（文件备份在 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/PHP渗透/ThinkphpGUI-1.3-SNAPSHOT.jar` ，适用 `java -jar ThinkphpGUI-1.3-SNAPSHOT.jar` 运行）
 
