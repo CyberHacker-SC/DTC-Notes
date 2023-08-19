@@ -6,6 +6,7 @@
 
 - HTTP 会将 URL 和 Headers 自动解 urldecode，但是不会解 POST 方法内的 urldecode (其实不一定，urldecode 是由编程语言负责的，具体看怎么设定的)
 - HTTP 的 get 方法在传参时不要画蛇添足加""（双引号），http 的参数本身就会被识别为字符串
+- HTTP GET 方法的 `#` 必须被编码为 %23 再发送，因为 `#` 这部分通常由浏览器处理，不会发送到服务器
 
 ### httpie
 
@@ -580,6 +581,8 @@ while True:
 - ${IFS} 和 %09 用于替换空格。如果{}被过滤，还可以用 $IFS$9 来进行空格绕过，$9 会被识别为空字符
 
 - $@ 和 %27%27 替代空字符串
+- 正则多行绕过，使用 `%0Aflag` (`%0A` 是换行符) 绕过 `preg('/^(.*)flag(.*)$/'', $_GET['aaa'])` (因为该正则表达式不会匹配换行符)  。注意，在文本编辑器中对 `\n` 进行 URL 编码会得到错误答案 `%5Cn` (只是将 \ 和 n 两个字符编码的结果)，文本编辑器中应该将回车符 (按 Enter) 编码。
+  - HTTP GET 方法的 `#` 必须被编码为 %23 再发送，因为 `#` 这部分通常由浏览器处理，不会发送到服务器
 
 - 如果 ; 被过滤，可以用 ?> 代替
 
@@ -1931,7 +1934,7 @@ else{
 ?>
 ```
 
-NSS [鹤城杯 2021]EasyP
+### NSS [鹤城杯 2021]EasyP
 
 https://www.ctfer.vip/problem/463
 
@@ -1965,7 +1968,7 @@ if (isset($_GET['show_source'])) {
 ?> 
 ```
 
-NSS [鹏城杯 2022]简单包含
+### NSS [鹏城杯 2022]简单包含
 
 https://www.ctfer.vip/problem/2422
 
@@ -1975,5 +1978,64 @@ https://www.ctfer.vip/problem/2422
 highlight_file(__FILE__);
 include($_POST["flag"]);
 //flag in /var/www/html/flag.php;
+```
+
+### [鹤城杯 2021]Middle magic
+
+https://www.ctfer.vip/problem/464
+
+```php
+<?php
+highlight_file(__FILE__);
+include "./flag.php";
+include "./result.php";
+if(isset($_GET['aaa']) && strlen($_GET['aaa']) < 20){
+
+    $aaa = preg_replace('/^(.*)level(.*)$/', '${1}<!-- filtered -->${2}', $_GET['aaa']);
+
+    if(preg_match('/pass_the_level_1#/', $aaa)){
+        echo "here is level 2";
+        
+        if (isset($_POST['admin']) and isset($_POST['root_pwd'])) {
+            if ($_POST['admin'] == $_POST['root_pwd'])
+                echo '<p>The level 2 can not pass!</p>';
+        // START FORM PROCESSING    
+            else if (sha1($_POST['admin']) === sha1($_POST['root_pwd'])){
+                echo "here is level 3,do you kown how to overcome it?";
+                if (isset($_POST['level_3'])) {
+                    $level_3 = json_decode($_POST['level_3']);
+                    
+                    if ($level_3->result == $result) {
+                        
+                        echo "success:".$flag;
+                    }
+                    else {
+                        echo "you never beat me!";
+                    }
+                }
+                else{
+                    echo "out";
+                }
+            }
+            else{
+                
+                die("no");
+            }
+        // perform validations on the form data
+        }
+        else{
+            echo '<p>out!</p>';
+        }
+
+    }
+    
+    else{
+        echo 'nonono!';
+    }
+
+    echo '<hr>';
+}
+
+?>
 ```
 
