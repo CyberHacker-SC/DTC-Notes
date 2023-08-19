@@ -860,6 +860,20 @@ http://xxx/?url=file:///var/www/html/flag.php
 http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
 ```
 
+##### ThinkPHP 注入漏洞
+
+使用 https://github.com/Lotus6/ThinkphpGUI 查询漏洞（文件备份在 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/PHP渗透/ThinkphpGUI-1.3-SNAPSHOT.jar` ，适用 `java -jar ThinkphpGUI-1.3-SNAPSHOT.jar` 运行）
+
+方法：
+
+1.选择 All 后查询
+
+![](static/think01.jpg)
+
+2.选择有漏洞的版本，执行 shell 命令，如图
+
+![](static/think02.jpg)
+
 #### 绕过复杂的正则表达式（RCE 类型之一）
 
 > 查看 flag.php 的一种冷门方法
