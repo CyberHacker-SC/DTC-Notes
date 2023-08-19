@@ -960,15 +960,19 @@ http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%C
 
 #### 部分漏洞
 
+##### include() 漏洞
+
+`include('source.php?/../../../../../ffffllllaaaagggg')` 如果 source.php? 这个目录并不存在，include 函数就会取执行后面的，跳转到上层目录
+
 ##### 超级全局变量(输出所有全局变量的值)
+
 ```
 http://xxx/?p=GLOBALS
 ```
 
-##### %00截断
+##### %00截断 (get_headers() 漏洞)
 
 在低于7.2.29的PHP版本7.2.x，低于7.3.16的7.3.x和低于7.4.4的7.4.x中，将 `get_headers()` 与用户提供的URL一起使用时，如果URL包含零（\ 0）字符，则URL将被静默地截断。这可能会导致某些软件对 `get_headers()` 的目标做出错误的假设，并可能将某些信息发送到错误的服务器。
-
 
 例如原地址 `http://node4.anna.nssctf.cn:28559/?url=http://www.ctfhub.com` 会被  `http://x/?url=http://127.0.0.1%00.ctfhub.com`  截断，而显示 `http://127.0.0.1` 的内容。
 
@@ -1384,6 +1388,33 @@ echo $c["foo"]; // 输出 "bar"
 
 eval() 用于执行 PHP 代码。exec() 用于执行 shell 命令，system() 也用于执行 shell 命令，但是 system() 会回显结果，exec() 不会回显
 
+##### $_REQUEST
+
+在 PHP 中，`$_REQUEST` 是一个包含了 HTTP 请求参数的关联数组。它包含了通过 GET、POST 和 COOKIE 方法发送的参数。`$_REQUEST` 数组的键是参数的名称，值是参数的值。
+
+当客户端发送一个 HTTP 请求时，PHP 会自动解析请求中的参数，并将它们存储在 `$_REQUEST` 数组中。这使得开发者可以方便地访问这些参数，而不需要关心请求是通过 GET 还是 POST 方法发送的。
+
+以下是一个示例，展示如何使用 `$_REQUEST` 获取表单提交的参数：
+
+```php
+<form method="post" action="process.php">
+  <input type="text" name="username">
+  <input type="password" name="password">
+  <input type="submit" value="Submit">
+</form>
+```
+
+在 `process.php` 文件中，你可以通过 `$_REQUEST` 访问提交的参数：
+
+```php
+$username = $_REQUEST['username'];
+$password = $_REQUEST['password'];
+
+// 进行处理逻辑...
+```
+
+需要注意的是，`$_REQUEST` 数组包含了所有的请求参数，包括通过 GET、POST 和 COOKIE 方法发送的参数。在某些情况下，这可能会导致安全问题，因为它可以让攻击者通过伪造请求来访问敏感数据。为了增加安全性，建议根据具体的需求使用 `$_GET`、`$_POST` 或 `$_COOKIE` 数组来获取对应的参数。
+
 ##### $_SERVER
 
 ###### $_SERVER['PHP_SELF']
@@ -1474,6 +1505,33 @@ parse_url($url) 会把 url 解析为 http、host、port、user、pass、path 等
 ##### filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))
 
 只要 ip 里面有本机地址 (如 127.0.0.1、0.0.0.0) ，全部过滤
+
+##### mb_substr、mb_strpos
+
+```php
+$_page = 'source.php?/../../../../../ffffllllaaaagggg'
+$_page = mb_substr( 
+  $page,
+  0,
+  mb_strpos($page . '?',  '?')
+);
+
+# 结果会返回 source.php
+```
+
+这段代码是PHP语言的一部分，用于获取URL中问号（?）之前的部分。
+
+代码解释如下：
+
+1. `mb_substr()` 函数用于获取字符串的子串。在这里，它用于获取 `$page` 变量中的子串。
+2. `$page` 是一个包含URL的字符串。
+3. 第一个参数是要截取的字符串，即 `$page`。
+4. 第二个参数是截取的起始位置。在这里，起始位置为0，表示从字符串的开头开始截取。
+5. 第三个参数是截取的长度。在这里，它使用了 `mb_strpos()` 函数来查找字符串中第一个问号（?）的位置，并将该位置作为截取的长度。
+6. `mb_strpos()` 函数用于返回字符串中第一次出现指定字符的位置。在这里，它搜索 `$page . '?'`，即在 `$page` 后面添加一个问号，以确保即使没有问号，也能返回正确的位置。
+7. 最后，将截取的子串赋值给 `$_page` 变量。
+
+总体来说，这段代码的目的是从URL中获取问号之前的部分，并将结果存储在 `$_page` 变量中。
 
 ##### mt_srand
 
