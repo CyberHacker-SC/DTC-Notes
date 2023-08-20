@@ -338,9 +338,28 @@ LIMIT 0, 1),3, 1))>97 AND
 
 数字的第3列代表猜的字段位数，`>`后面的数字是 Ascii 码。数字的第3列相同时，取最后一个 Ascii 码(如果后面有状态码，需要保证这一行的状态码是200而不是404)。将取得的 Ascci 码拼接好即是完整的字段。（可以用字典来拼接。一般依次猜数据库名、表名、列名等）
 
-#### 键盘输入(USB)
+#### Wireshark 常用命令
+
+Wireshark 是一款非常强大的网络协议分析工具，可以用来捕获和分析网络流量。它能够解析各种类型的网络协议，包括 HTTP。在分析 HTTP 流量时，你可以使用以下的一些过滤器和功能：
+
+1. **HTTP 过滤器**：在过滤器栏中输入 "http"，然后按 Enter 键，Wireshark 将只显示 HTTP 流量。
+
+2. **特定主机的 HTTP 过滤器**：如果你只想看到来自特定主机的 HTTP 流量，你可以使用过滤器 "http.host == yourhostname.com"，其中 "yourhostname.com" 是你想要过滤的主机名。
+
+3. **特定方法的 HTTP 过滤器**：如果你只想看到特定 HTTP 方法（例如 GET 或 POST）的流量，你可以使用过滤器 "http.request.method == METHOD"，其中 "METHOD" 是你想要过滤的方法，例如 "GET" 或 "POST"。
+
+4. **特定状态码的 HTTP 过滤器**：如果你只想看到特定 HTTP 状态码的流量，你可以使用过滤器 "http.response.code == CODE"，其中 "CODE" 是你想要过滤的状态码，例如 "200" 或 "404"。
+
+5. **追踪 TCP 会话**：在 HTTP 请求上右键点击，然后选择 "Follow" > "TCP Stream"，Wireshark 将显示整个 TCP 会话的内容，这可以帮助你更好地理解 HTTP 请求和响应。
+
+6. **查看 HTTP 详细信息**：在 HTTP 请求或响应上双击，Wireshark 将打开一个新窗口，显示该请求或响应的详细信息，包括头部、载荷等。
+
+以上是一些基本的 Wireshark 命令和功能。请注意，Wireshark 是一个非常强大的工具，可以进行更复杂的分析和过滤。
+
+### 键盘输入(USB)
 
 **KBE**
+
 ```bash
 python KBE.py
 ```

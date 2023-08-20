@@ -443,6 +443,16 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 解得结果后，所有数字连接起来就是密码
 
+#### emoji-aes
+
+形如（需要密钥）
+
+```
+🙃💵🌿🎤🚪🌏🐎🥋🚫😆😍🥋🐘🍴🚰😍☀🌿😇😍😡🏎👉🛩🤣🖐💧☺🌉🏎😇😆🎈💧⏩☺🔄🌪⌨🐅🎅🙃🍌🙃🔪☂🏹🕹☃🌿🌉💵🐎🐍😇🍵😍🐅🎈🥋🚰✅🎈🎈
+```
+
+在线解密地址: https://aghorler.github.io/emoji-aes/
+
 #### 西卡语
 
 ![](static/img/西卡语.png)
