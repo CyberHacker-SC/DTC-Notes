@@ -230,6 +230,8 @@ file 文件名
 ### Hex
 
 - 右键查看 Hex，优先使用 010 Editor（直观性更强，能更快发现 flag）
+- 有时 flag 不一定在显眼的位置（但位置一定不偏僻，如最前面一段或最后面一段），看仔细一点【更简单的方法是直接用 [strings](###用 strings 匹配) 匹配】
+- 可以用 [strings](###用 strings 匹配) 匹配一定程度替代人工查看 hex
 
 遇到过一道题，flag 藏在 Hex 中，构成图形，如下:
 
@@ -245,7 +247,7 @@ txt 文件有可能可以下滑，信息藏在最下面
 ### 一个文件夹下一堆文件
 用 VS Code 全局搜索关键词
 
-### 查看 cat 输出乱码的文件
+### 用 strings 匹配
 匹配二进制文件的 flag
 ```bash
 strings webshell.pcapng | grep -E '.{1,10}\{.{1,50}\}.*'
@@ -265,6 +267,7 @@ binwalk firmware.bin
 注意:图片中有可能隐藏另一张图片
 
 **文件自动提取**
+
 ```bash
 binwalk -e firmware.bin
 ```

