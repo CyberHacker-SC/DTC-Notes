@@ -280,6 +280,8 @@ foremost -T ccc.pcap
 
 ### pcapng 格式
 
+- Wireshark 过滤器筛选后，如果又想返回查询全部流量，需要删除搜索内容后点击重新搜索 (Wireshark 并不会自动显示全部流量)
+
 #### http 类型
 - 可以全局搜索文件后缀，右键追踪 http 流。搜索 http 流后，可以按 command + f 搜索全文关键词
 - `http contains "关键词"` 这个命令可以筛选关键词。单独的数据包中无法筛选关键词，只能复制出来筛选
