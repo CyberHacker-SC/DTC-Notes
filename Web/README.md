@@ -1234,9 +1234,9 @@ echo urlencode(serialize($ctfs));
 // 最后输出时最好使用 urlencode 编码，避免不合规字符串，Cookie 中的 url 编码会被 HTTP 自动解码
 ```
 
-##### 反序列化正则绕过
+##### 反序列化绕过
 
-###### 正则匹配 "o" 或 "c" 
+###### 绕过正则匹配的 "o" 或 "c" 
 
 将 O:4 改为 O:+4
 
@@ -1257,6 +1257,10 @@ O:4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ```bash
 O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ```
+
+###### 绕过特殊情况下的 `===` 判断
+
+如 `if($this->openstack->neutron === $this->openstack->nova)` ， `this->openstack` 本身应该是一个类实例，此时只要保证 `this->openstack = ''` 或   `this->openstack = null` ，那么 `$this->openstack->neutron` 和 `$this->openstack->nova` 的值会自动反显为 `null`，从而绕过 `===`。例题 https://www.ctfer.vip/problem/335
 
 ##### PHP 魔术方法
 
