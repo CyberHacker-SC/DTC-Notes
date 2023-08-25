@@ -41,6 +41,7 @@
 - png 图片可以先用 `pngcheck 1.png` 检查一下图片有没问题，打不开的图片也可能是宽高被修改了。png 还可以考虑 lsb 一键工具
 - PS 中可以点击上方菜单栏的 窗口—信息 查看每个像素点的坐标
 - 图片不一定只是图片，完全可以当成文件来做，例如用 strings 输出该文件的信息，可能有隐藏提示
+- 题目得到两张很像的图片，可以考虑盲水印
 
 ### 二维码、条码识别
 https://online-barcode-reader.inliteresearch.com/
@@ -63,6 +64,8 @@ exiftool -verbose 1.jpg
 ```
 
 ### 破解正确宽高
+
+- 这个脚本是 png 的做法。jpg 直接用 010 editor 改高就行了，bmp 同理（bmp 的高度不能拉得太高，因为这个格式没有算法压缩来自动处理）
 
 有时候因为图片宽高被修改了导致显示不全
 
@@ -100,7 +103,34 @@ for w in range(n):
 ### 图片取征 Stegsolve
 
 #### LSB
-在 Stegsolve-Analyse-Data Extract 勾上右下角3个0，点 preview
+##### 方法一
+
+在 Stegsolve-Analyse-Data Extract 勾上右下角3个0 (有时候需要切换右边的 Row 和 column 选项，也有可能要改其他选项，不要太死板)，点 preview
+
+##### 另一种图片隐写解法 zsteg (png, bpm)
+
+- 主要用来检测 png 和 bpm
+- 该方法是 LSB 解密最简单的一种解法
+
+```bash
+zsteg -a file
+```
+
+##### 加密 LSB 隐写解密
+
+- 需要知道密钥
+
+工具：https://github.com/livz/cloacked-pixel
+
+cloacked-pixel 项目的使用:
+
+```bash
+python2 lsb.py hide ori.png flag.txt 123456
+```
+
+```bash
+python2 lsb.py extract ori.png-stego.png aaa.txt 123456
+```
 
 #### 可能是图片宽高被修改了
 - 1.可以在 Stegsolve-Analyse-File format 最上面查看图片的原始宽高
@@ -108,12 +138,6 @@ for w in range(n):
 
 #### 合并多张图
 如果有多张图，可以用 Stegsolve 合并(Image Combiner)
-
-### 另一种图片隐写解法 zsteg (png, bpm)
-> 主要用来检测 png 和 bpm (主要用于 LSB ?)
-```bash
-zsteg -a file
-```
 
 ### 图片盲水印提取
 
@@ -288,8 +312,14 @@ foremost -T ccc.pcap
 #### http 类型
 - 可以全局搜索文件后缀，右键追踪 http 流。搜索 http 流后，可以按 command + f 搜索全文关键词
 - `http contains "关键词"` 这个命令可以筛选关键词。单独的数据包中无法筛选关键词，只能复制出来筛选
+- 筛选方法
+  - ip.addr == 192.168.1.1
+  - http.request.method == "post"
+  - http && ip.dst == 192.168.1.1 (按照 http 协议且 ip 目的地址为 192.168.1.1 进行组合过滤显示)
+
 - 可以直接解码 JWT 查看用户名等信息，JWT 解码工具: https://www.box3.cn/tools/jwt.html
-- webshell (PHP) 的执行路径通常是 /var/www/html/ 的相对路径
+- webshell (PHP) 的执行路径通常是 `/var/www/html/` 的相对路径
+- 看到 `FFD8` 开头应该联想到 jpg 图片
 
 ##### 注入类
 

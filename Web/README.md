@@ -637,13 +637,12 @@ SELECT * FROM users WHERE username='vampire     ';
 
 ##### 上传
 - 拿到 webshell
-
+- 一般来说，题目可能过滤文件类型、文件后缀、文件头等
 - 需要注意下，有时候后端是通过 HTTP Headers 的 content-type 来判断文件类型的，改了 content-type 即可绕过。（在 Brup 中，只用改 ------WebKit 下方的 content-type）遇到过一道题，上传类型必须用 image/jpeg，用 jpg 和 png 都不行（具体看题目怎么绕过的，实测 jpeg 最通用）。
-
 - 如果看不懂前端验证，可以改成图片格式后用 Burp 传上去，再用 Reapter 将文件后缀改为 PHP 传上去
-
 - 如果 [] 被过滤了，可以用 {} 替代？？
 - flag 不仅可以藏在文件中，还可以藏在环境变量中，在终端输入 `env` 查看环境变量
+- 如果 php 后缀被绕过，可以尝试 php3|php5|php7|phtml|pht (这些后缀可能被设置识别为 php)
 
 ###### test.php
 
@@ -742,7 +741,7 @@ GIF89a
 ?>
 ```
 
-用蚁剑连接 `http://x/?a=phar://example.phar/67.php` 即可（`67.php` 是构造 phar 时压进去的内容是 `<?php eval($_POST["a"]); ?>`）
+上传上述代码生成的 example.phar，用蚁剑连接 `http://x/?a=phar://example.phar/67.php` 即可（`67.php` 是构造 phar 时压进去的内容是 `<?php eval($_POST["a"]); ?>`）
 
 **注意：把 `example.phar` 更名为 `example.zip` 或其他后缀仍然可行**
 
@@ -1194,6 +1193,10 @@ s214587387a
 http://xxx/?v1[]=1&v2[]=2
 ```
 
+###### 绕过 if ($md5==md5($md5))
+
+这里要我们传入一个md5的值，要求在经过md5加密后两者还是相等，php弱类型比较，php若比较会截取字符串的数字，直到遇到字符才会停止，比如‘12x34’会被读取为12，而‘ee123’就会被读取为0。而在以0x开头的字符串进行弱比较的时候，就总是被认为是相同的。在这里我们就需要找到一个是0x开头并且md5加密后还是0x开头的字符串，这里我是真没找到只能去wp里找，发现了大家都在用的：`0e215962017`
+
 ##### 弱类型 if 绕过
 
 下面的代码示例结果输出 1
@@ -1234,7 +1237,13 @@ if ($x == $y) {
 
 这是 PHP 的类型松散比较的一个特性。如果你想进行严格的类型比较，你应该使用 === 操作符，这样除了值要相等，类型也要相等，"字符串"===0 将返回 false。
 
-##### if(!$_GET['id']) 绕过
+###### if(intval($num) < 2020 && intval($num + 1) > 2021) 绕过
+
+- 该漏洞仅适用于 PHP 5，PHP 7 不会将 `intval('1e4')` 识别为 1
+
+php 有一个强转换机制：如果将一个字符串和一个数字相加，那么 php 首先会将字符串转换为数字，然后将两个数相加。利用科学计数法，当我们传入的是 `1e4` 的时候，经过intval函数的作用后就会变成1，但是当加上1的时候就会变为10001。
+
+###### if(!$_GET['id']) 绕过
 
 某个 GET 参数例如 id 的值为 0，在 PHP 中，!$_GET['id'] 该判断是 true。要绕过该判断，使用 id=0a 即可
 >”1aaaa“=="1"是成立的，因为数字和字母不可比较，只要字母前面的数字全一样就可以
@@ -1666,6 +1675,71 @@ parse_url($url) 会把 url 解析为 http、host、port、user、pass、path 等
 ##### filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))
 
 只要 ip 里面有本机地址 (如 127.0.0.1、0.0.0.0) ，全部过滤
+
+##### str_ireplace
+
+`str_ireplace` 是 PHP 中的一个字符串替换函数，用于在字符串中进行不区分大小写的替换操作。
+
+函数的语法如下：
+
+```php
+str_ireplace($search, $replace, $subject, &$count = null)
+```
+
+参数说明：
+- `$search`：要查找和替换的字符串或字符串数组。
+- `$replace`：用于替换的字符串或字符串数组。
+- `$subject`：要进行替换操作的字符串或字符串数组。
+- `$count`（可选）：如果提供了该参数，将存储替换操作的次数。
+
+函数功能：
+`str_ireplace` 函数在 `$subject` 字符串中查找 `$search` 字符串，并将其替换为 `$replace` 字符串。不同于 `str_replace` 函数，`str_ireplace` 不区分大小写，即无论 `$search` 在 `$subject` 中的大小写如何，都会进行替换。
+
+示例：
+
+```php
+$str = "Hello, world!";
+$newStr = str_ireplace("hello", "hi", $str);
+echo $newStr;  // 输出: hi, world!
+```
+
+在上面的示例中，`str_ireplace` 将字符串中的 "Hello" 替换为 "hi"，不区分大小写。
+
+需要注意的是，`str_ireplace` 是不区分大小写的替换函数。如果需要进行区分大小写的替换操作，可以使用 `str_replace` 函数。
+
+##### strstr
+
+在 PHP 中，`strstr()` 是一个字符串函数，用于在一个字符串中查找另一个字符串的第一次出现，并返回从该位置开始到字符串末尾的子字符串。
+
+`strstr()` 函数的语法如下：
+
+```php
+strstr(string $haystack, mixed $needle, bool $before_needle = false): string|false
+```
+
+参数说明：
+- `$haystack`：要在其中搜索的字符串。
+- `$needle`：要查找的子字符串。
+- `$before_needle`（可选）：如果设置为 `true`，则返回 `$needle` 之前的部分；如果设置为 `false`（默认），则返回 `$needle` 之后的部分。
+
+返回值：
+- 如果找到了子字符串，则返回从子字符串开始到字符串末尾的子字符串。
+- 如果没有找到子字符串，则返回 `false`。
+
+以下是 `strstr()` 函数的示例用法：
+
+```php
+$str = "Hello, world!";
+$substring = "world";
+
+$result = strstr($str, $substring);
+echo $result;  // 输出：world!
+
+$result = strstr($str, $substring, true);
+echo $result;  // 输出：Hello, 
+```
+
+在上面的示例中，`strstr($str, $substring)` 查找 `$substring`（"world"）在 `$str`（"Hello, world!"）中的第一次出现，并返回从该位置开始到字符串末尾的子字符串。在第二个示例中，`strstr($str, $substring, true)` 使用第三个参数设置为 `true`，返回 `$substring` 之前的部分。
 
 ##### mb_substr、mb_strpos
 
