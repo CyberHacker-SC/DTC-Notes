@@ -4,8 +4,11 @@
 
 - 如果看起来像 base，可能是多层嵌套 base，用其他软件解可能都会报错，这时选择 [basetrack](####basetrack) 自动接码 (TomatoTools 识别不了)
 - 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit) 。除此之外，如果这段密文很长，还可能是[图片的 base64](####base64 转图片) (TomatoTools 识别不了)
-- 如果遇到一串十进制编码，一般可以先转为十六进制，再看看十六进制可以转为字符串还是图片
-- 看到 16 进制（如 `d43963e92b012aab` 可以联想到反查 md5 [通过在线网站查询]）
+- 关于10进制和16进制
+  - 如果遇到一串10进制编码，一般可以先转为16进制（因为 CTF-Tools 无法识别 10 进制从而为 unicode 字符串，但16进制可以），再看看16进制可以转为字符串还是图片。
+  - 看到 16 进制（如 `d43963e92b012aab` 可以联想到反查 md5 [通过在线网站查询]）
+  - 如果上面两种方法得到的16进制都不能转换，可以考虑题目是否对 ascci 码做了偏移，使用[脚本](####特殊情况：16进制/10进制 偏移后的字符串转 flag)还原 flag（**注意**：只要确认这个字符串不是图片或 md5，直接使用该脚本即可，该脚本已经完善为 10进制、16进制 转 unicode 字符串 的**通用脚本**）
+
 - 不要相信 TomatoTools 中文本框里复制出的内容，所见不一定是所得。建议复制到备忘录后，再复制一次
 
 ### ciphey
@@ -15,26 +18,111 @@
 
 ### 进制转换
 
-#### 十进制转其他
+#### 10进制转其他
 
 如需转回十进制，用 int(text)
 
-##### 十进制转十六进制
+##### 10进制转16进制
 
 ```python
 hex(3207357)
 ```
 
-##### 十进制转二进制
+Python 中16进制以 `0x` 开头，如需去掉，请执行
+
+```python
+hex(3207357)[2:]
+```
+
+##### 10进制转2进制
 
 ```python
 bin(3207357)
 ```
 
-##### 十进制转八进制
+##### 10进制转8进制
 
 ```python
 oct(3207357)
+```
+
+#### 特殊情况：16进制/10进制 偏移后的字符串转 flag
+
+- 我已经将该脚本完善为一个**通用脚本**，支持 10进制/16进制 **直接转换**为 unicode 字符串，同时支持按 **最后一个字符和  '}' 的偏移**来转换
+
+- 这种情况直接将 16进制/10进制 转为 unicode 字符串会导致不可读，CTF-Tools 也识别不了，所以使用下面的脚本实现
+
+有的题目得到的16进制或10进制，是经过 ascci 码偏移后的值，这里会计算 最后一个元素的 asscii 与 '}' 的 ascci 的差值，达到自动还原 flag 的目的。（因为 flag 字符串的最后一个元素往往是 '}'）
+
+```python
+# 此处不但支持16进制，还支持10进制，程序会自动判断
+hex_str = 'c8e9aca0c3f4e6e5f2a1a0d4e8e5a0e6ece1e7a0e9f3baa0e6ece1e7fbf7e5e6e5efe9e4eae7efe5e4f3e6e9eff2f0e5e6e4e6e7e7e6e4f3e5fd'
+
+
+def format_hex(hex_str: str):
+    '''
+        将16进制转为8位一个整体，中间加空格
+    '''
+    result = ''
+    for i in range(0, len(hex_str), 2):
+        result += hex_str[i:i+2] + ' '
+    result = result.rstrip(' ')
+    return result
+
+
+def hex_to_str(hex_str: str):
+    hex_list = hex_str.split(' ')
+    reslut = ''
+    for one in hex_list:
+        reslut += chr(int(one, 16))
+    return reslut
+
+def hex_to_str_flag(hex_str: str):
+    '''
+        16进制转 ascii 码，并寻找移位的 flag
+        （这里假设该字符串最后一位一定是 '}' ）
+    '''
+    hex_list = hex_str.split(' ')
+    # 转为10进制
+    int_list = []
+    for one in hex_list:
+        int_list.append(int(one, 16))
+    
+    # 分析 最后一个字符 和 '}' 的差值
+    diff = ord('}') - int_list[-1]
+    # 得到 flag
+    flag = ''
+    for one in int_list:
+        flag += chr(one + diff)
+    
+    return flag
+
+
+def main():
+    global hex_str
+    # 将16进制或10进制中间的空格去掉
+    hex_str = hex_str.replace(' ', '')
+    
+    # 如果是10进制，先转为16进制
+    if hex_str.isdigit():
+        hex_str = hex(int(hex_str))[2:]
+    
+    print(f'16进制为:{hex_str}')
+    
+    # 先分离为8位一组
+    hex_str = format_hex(hex_str)
+    
+    # 获取未偏移的 ascci 码
+    result = hex_to_str(hex_str)
+    # 获取偏移值
+    flag = hex_to_str_flag(hex_str)
+    
+    print(f'直接转换:{result}')
+    print(f'偏移后转换:{flag}')
+    
+
+if __name__ == '__main__':
+    main()
 ```
 
 ### base 格式
