@@ -314,6 +314,7 @@ foremost -T ccc.pcap
 
 #### http 类型
 - 可以全局搜索文件后缀，右键追踪 http 流。搜索 http 流后，可以按 command + f 搜索全文关键词
+- 按住 command 可以选择多个流量包，可以导出为纯文本形式
 - `http contains "关键词"` 这个命令可以筛选关键词。单独的数据包中无法筛选关键词，只能复制出来筛选
 - 筛选方法
   - ip.addr == 192.168.1.1
@@ -598,6 +599,14 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 ```
 
 `-…/…-/…–/----./-…/…–/./----./…—/-…/-----/.----/…—/.-/.-/-…` 这种编码（另一种编码）就是将 `空格` 变为了 `/`
+
+### PDF 文件隐写
+
+- PDF 文件隐写的解码工具
+
+文件位置: `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Misc/Windows工具/wbStego4.3open/wbStego4.3open.exe`
+
+用 wine 打开后，选择 pdf - decode - 无密码解码 即可
 
 ### 内存分析 (.vmem 文件)
 
