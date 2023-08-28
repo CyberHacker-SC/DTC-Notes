@@ -11,6 +11,7 @@
   - 如果是这种有空格的10进制 `33 43 43 13 44 21 54 34 45 21 24 33 14 21 31 11 22 12 54 44 11 35 13 34 14 15`，应该想到 [Tap Code](####Tap Code)
 
 - 不要相信 TomatoTools 中文本框里复制出的内容，所见不一定是所得。建议复制到备忘录后，再复制一次
+- 如果题目中提示有两个密钥，如 `19_20`，要联想到是[仿射密码](####仿射密码)
 
 ### ciphey
 > 先尝试 ciphey -t "Encrypted input"
@@ -130,7 +131,7 @@ if __name__ == '__main__':
 
 - 看到很长一串，可能是图片的 base64
 
-- 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别
+- 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别 (用 magic 模式)
 
 #### basetrack
 
@@ -552,6 +553,14 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 ```
 
 在线工具: https://www.boxentriq.com/code-breaking/tap-code (如果是像例子中的数字，需要选择 `Numbers`)
+
+#### 仿射密码
+
+- 如果题目中提示有两个密钥，如 `19_20`，要联想到是仿射密码
+
+![](static/img/仿射密码.jpg)
+
+在线解密：http://www.metools.info/code/affinecipher183.html
 
 #### 西卡语
 
