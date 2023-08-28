@@ -376,6 +376,29 @@ LIMIT 0, 1),3, 1))>97 AND
 
 数字的第3列代表猜的字段位数，`>`后面的数字是 Ascii 码。数字的第3列相同时，取最后一个 Ascii 码(如果后面有状态码，需要保证这一行的状态码是200而不是404)。将取得的 Ascci 码拼接好即是完整的字段。（可以用字典来拼接。一般依次猜数据库名、表名、列名等）
 
+举例一段写好的代码（根据具体的题目修改 split 部分）
+
+```python
+def main():
+    with open('1.txt', 'r') as f:
+        text = f.read()
+    lines = text.splitlines()
+    
+    data = {}
+    # 循环里的判断(split 部分)要根据每道题的流量改
+    for line in lines:
+        ass_code = line.rsplit('--+')[0].rsplit('=')[-1]
+        num = line.rsplit(',1))')[0].rsplit(',')[-1]
+        data[num] = chr(int(ass_code))
+    
+    for k in data:
+        print(data[k], end='')
+
+
+if __name__ == '__main__':
+    main()
+```
+
 #### Wireshark 常用命令
 
 Wireshark 是一款非常强大的网络协议分析工具，可以用来捕获和分析网络流量。它能够解析各种类型的网络协议，包括 HTTP。在分析 HTTP 流量时，你可以使用以下的一些过滤器和功能：
