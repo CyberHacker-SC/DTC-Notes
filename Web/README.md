@@ -1016,6 +1016,8 @@ post data:<?php system("ls /"); ?>
 
 ###### Nginx 日志文件，通过修改 User-Agent 执行 php 代码
 
+- 这种方法也可以注入一句话木马，连接 `http://xxx/?file=/var/log/nginx/access.log` 该文件即可
+
 如果 php://input 都被过滤，可以考虑此方法
 
 有时候题目代码没有明示，但测试下来 system() 等这些函数都用不了，则可以尝试该方法
@@ -1346,6 +1348,10 @@ http://xxx/?p=GLOBALS
 ```
 ?id[]=1
 ```
+
+##### Session 注入
+
+可以通过 session 注入木马 (如 `<?php system('ls'); ?>`)，然后访问 `/tmp/sess_{sessid}` 这个文件即可
 
 ##### Session 条件竞争
 
