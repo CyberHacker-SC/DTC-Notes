@@ -576,6 +576,44 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 
 `-…/…-/…–/----./-…/…–/./----./…—/-…/-----/.----/…—/.-/.-/-…` 这种编码（另一种编码）就是将 `空格` 变为了 `/`
 
+### 内存分析 (.vmem 文件)
+
+- 注意：`vol.py` 在 Docker py-ctf 的环境变量中
+
+此处以 `Target.vmem` 为示例
+
+先查看系统版本
+
+```bash
+vol.py -f Target.vmem imageinfo
+```
+
+查到系统如果是 `Win7SP1x64_23418`，用 pslist 尝试是否正确
+
+```bash
+vol.py -f Target.vmem --profile=Win7SP1x64 pslist
+```
+
+遇到的题目中让查虚拟机的密码，直接使用 lsadump 查看最后登录的用户
+
+```bash
+vol.py -f Target.vmem --profile=Win7SP1x64 --profile=Win7SP1x64 lsadump
+```
+
+#### 查询文件并 dump 下来
+
+如果要查询虚拟机中的关键词，如下（查询 "HUAWEI" 关键词）
+
+```bash
+vol.py -f Target.vmem --profile=Win7SP1x64 filescan|grep -E "HUAWEI"
+```
+
+查到的文件 id 为 `0x000000007d8c7d10`，把查到的文件 dump 下来，导出的目录为 `fileout`
+
+```bash
+vol.py -f Target.vmem --profile=Win7SP1x64 dumpfiles -Q 0x000000007d8c7d10 -D ./fileout
+```
+
 ## 文本
 
 ### 大小写隐写
