@@ -324,6 +324,7 @@ foremost -T ccc.pcap
 - 可以直接解码 JWT 查看用户名等信息，JWT 解码工具: https://www.box3.cn/tools/jwt.html
 - webshell (PHP) 的执行路径通常是 `/var/www/html/` 的相对路径
 - 看到 `FFD8` 开头应该联想到 jpg 图片
+- 如果实在找不到思路，从 POST 方法找突破口，理解注入的代码到底干了什么（记得将代码格式化，便于理解）
 
 ##### 注入类
 
