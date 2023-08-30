@@ -30,7 +30,7 @@
 
   - 看到 16 进制（如 `d43963e92b012aab` 可以联想到反查 md5 [通过在线网站查询]）
 
-  - 如果上面两种方法得到的16进制都不能转换，可以考虑题目是否对 ascci 码做了偏移，使用[脚本](####特殊情况：16进制/10进制 偏移后的字符串转 flag)还原 flag（**注意**：只要确认这个字符串不是图片或 md5，直接使用该脚本即可，该脚本已经完善为 10进制、16进制 转 unicode 字符串 的**通用脚本**）
+  - 如果上面两种方法得到的16进制都不能转换，可以考虑题目是否对 ascci 码做了偏移，使用[脚本](####特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag)还原 flag（**注意**：只要确认这个字符串不是图片或 md5，直接使用该脚本即可，该脚本已经完善为 10进制、16进制 转 unicode 字符串 的**通用脚本**）
 
   - 如果是这种有空格的10进制 `33 43 43 13 44 21 54 34 45 21 24 33 14 21 31 11 22 12 54 44 11 35 13 34 14 15`，应该想到 [Tap Code](####Tap Code)
 
@@ -75,17 +75,17 @@ bin(3207357)
 oct(3207357)
 ```
 
-#### 特殊情况：16进制/10进制 偏移后的字符串转 flag
+#### 特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag
 
-- 我已经将该脚本完善为一个**通用脚本**，支持 10进制/16进制 **直接转换**为 unicode 字符串，同时支持按 **最后一个字符和  '}' 的偏移**来转换
+- 我已经将该脚本完善为一个**通用脚本**，支持 2进制/10进制/16进制 **直接转换**为 unicode 字符串，同时支持按 **最后一个字符和  '}' 的偏移**来转换
 
 - 这种情况直接将 16进制/10进制 转为 unicode 字符串会导致不可读，CTF-Tools 也识别不了，所以使用下面的脚本实现
 
 有的题目得到的16进制或10进制，是经过 ascci 码偏移后的值，这里会计算 最后一个元素的 asscii 与 '}' 的 ascci 的差值，达到自动还原 flag 的目的。（因为 flag 字符串的最后一个元素往往是 '}'）
 
 ```python
-# 此处不但支持16进制，还支持10进制，程序会自动判断
-hex_str = 'c8e9aca0c3f4e6e5f2a1a0d4e8e5a0e6ece1e7a0e9f3baa0e6ece1e7fbf7e5e6e5efe9e4eae7efe5e4f3e6e9eff2f0e5e6e4e6e7e7e6e4f3e5fd'
+# 此处不但支持16进制，还支持10进制和2进制，程序会自动判断
+text = 'c8e9aca0c3f4e6e5f2a1a0d4e8e5a0e6ece1e7a0e9f3baa0e6ece1e7fbf7e5e6e5efe9e4eae7efe5e4f3e6e9eff2f0e5e6e4e6e7e7e6e4f3e5fd'
 
 
 def format_hex(hex_str: str):
@@ -105,6 +105,7 @@ def hex_to_str(hex_str: str):
     for one in hex_list:
         reslut += chr(int(one, 16))
     return reslut
+
 
 def hex_to_str_flag(hex_str: str):
     '''
@@ -127,17 +128,7 @@ def hex_to_str_flag(hex_str: str):
     return flag
 
 
-def main():
-    global hex_str
-    # 将16进制或10进制中间的空格去掉
-    hex_str = hex_str.replace(' ', '')
-    
-    # 如果是10进制，先转为16进制
-    if hex_str.isdigit():
-        hex_str = hex(int(hex_str))[2:]
-    
-    print(f'16进制为:{hex_str}')
-    
+def hex_conversion(hex_str):
     # 先分离为8位一组
     hex_str = format_hex(hex_str)
     
@@ -148,6 +139,37 @@ def main():
     
     print(f'直接转换:{result}')
     print(f'偏移后转换:{flag}')
+
+
+def main():
+    global text
+    # 将16进制或10进制中间的空格去掉
+    text = text.replace(' ', '')
+    
+    hex_10_str = None
+    hex_2_str = None
+    
+    # 如果是10进制，先转为16进制
+    if text.isdigit():
+        hex_10_str = hex(int(text))[2:]
+        print(f'10进制转16进制:{hex_10_str}')
+        
+    # 如果是2进制，先转为16进制
+    if all(c in '01' for c in text):
+        decimal = int(text, 2)
+        hex_2_str = hex(decimal)[2:]
+        print(f'2进制转16进制:{hex_2_str}')
+    
+    if hex_10_str:
+        print('\n当字符串是10进制时:')
+        hex_conversion(hex_10_str)
+    if hex_2_str:
+        print('\n当字符串是2进制时:')
+        hex_conversion(hex_2_str)
+    if not hex_10_str and not hex_2_str:
+        print('当字符串是16进制时:')
+        hex_str = text
+        hex_conversion(hex_str)
     
 
 if __name__ == '__main__':
