@@ -611,6 +611,22 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 在线解密: https://roar.iiilab.com/
 
+#### EBCDIC
+
+如果一个文件用 010 editor 打开有乱码内容，形如
+
+```
+摂m墷m卪倕ⅲm仈Z
+```
+
+解码方法：打开 010 editor，选择 tools，选择 convert，选择 convert to EBCDIC (使用后记得还原)
+
+#### 福尔摩斯小人密码
+
+![](static/img/福尔摩斯小人密码1.png)
+
+![](static/img/福尔摩斯小人密码2.png)
+
 #### 西卡语
 
 ![](static/img/西卡语.png)
