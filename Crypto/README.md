@@ -87,7 +87,6 @@ oct(3207357)
 # 此处不但支持16进制，还支持10进制和2进制，程序会自动判断
 text = 'c8e9aca0c3f4e6e5f2a1a0d4e8e5a0e6ece1e7a0e9f3baa0e6ece1e7fbf7e5e6e5efe9e4eae7efe5e4f3e6e9eff2f0e5e6e4e6e7e7e6e4f3e5fd'
 
-
 def format_hex(hex_str: str):
     '''
         将16进制转为8位一个整体，中间加空格
@@ -134,11 +133,13 @@ def hex_conversion(hex_str):
     
     # 获取未偏移的 ascci 码
     result = hex_to_str(hex_str)
-    # 获取偏移值
-    flag = hex_to_str_flag(hex_str)
-    
     print(f'直接转换:{result}')
-    print(f'偏移后转换:{flag}')
+    # 获取偏移值
+    try:
+        flag = hex_to_str_flag(hex_str)
+        print(f'偏移后转换:{flag}')
+    except:
+        print('无法偏移转换')
 
 
 def main():
@@ -151,7 +152,15 @@ def main():
     
     # 如果是10进制，先转为16进制
     if text.isdigit():
-        hex_10_str = hex(int(text))[2:]
+        i = 0
+        hex_10_str = ''
+        while(i<len(text)):
+            if int(text[i:i+2])>=32:
+                hex_10_str=hex_10_str+hex(int(text[i:i+2]))[2:]
+                i+=2
+            else:
+                hex_10_str=hex_10_str+hex(int(text[i:i+3]))[2:]
+                i+=3
         print(f'10进制转16进制:{hex_10_str}')
         
     # 如果是2进制，先转为16进制
