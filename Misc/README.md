@@ -233,6 +233,9 @@ convert -delay 3 *.png output.gif
 
 ### 查看文件类型
 用 file 命令识别下是什么文件 (不能完全相信 file)
+
+- mp3 的 提示 `: MPEG ADTS, layer III, v1, 128 kbps, 44.1 kHz, Monaural`
+
 ```bash
 file 文件名
 ```
@@ -447,8 +450,8 @@ crunch 11 11 -t 1391040%%%% -o 1.txt
 
 ### 压缩文件
 
-- 有的压缩文件只有内部的一个文件加密，可以手动试下其他文件能不能直接解压。(已解决，macOS 统一使用 Bandzip 解压，解压出来的文件如果乱码，便使用 wine 打开)
-- 优先使用 unzip 命令解压，unzip 会自动解压上面提到的未加密文件。(unzip 和 macOS 的双击解压效果一致)
+- 有的压缩文件只有内部的一个文件加密，可以手动试下其他文件能不能直接解压。(已解决，macOS 统一使用 `Bandzip` 解压，解压出来的文件如果乱码，便使用 wine 打开)
+- 优先使用 unzip 命令解压，unzip 会自动解压上面提到的未加密文件。(unzip 和 macOS 的双击解压效果一致，现改为统一使用 `Bandzip`)
 - 直接用 binwalk 可以分离一个压缩包里未加密的文件 (该方法不是 100% 有效)
 - 有时候一个文件解压出来有多个文件，不要眼花，切勿忽略每个文件
 
@@ -585,7 +588,9 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 ### 音频文件
 
 - 可以用 Audacity 打开分析
-- 将 Audacity 的音轨放大后，可能会混杂摩斯密码
+- 将 Audacity 的音轨放大后，可能会在某一段混杂摩斯密码
+
+#### 音频混杂摩斯密码
 
 例题（仔细看转码规则！）
 
@@ -598,6 +603,18 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 ```
 
 `-…/…-/…–/----./-…/…–/./----./…—/-…/-----/.----/…—/.-/.-/-…` 这种编码（另一种编码）就是将 `空格` 变为了 `/`
+
+#### MP3stego
+
+- 如果没有发现音频中有隐写，尝试使用 MP3stego (位置: `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Misc/Windows工具/MP3Stego_1_1_19/MP3Stego/Encode.exe`)
+
+为了避免 BUG，需要把 mp3 文件放到 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Misc/Windows工具/MP3Stego_1_1_19/MP3Stego` 目录中，确保和程序在同一个目录中
+
+```bash
+#1.如果没有密码，就直接按回车
+# wine 运行前面要加一个 wine
+Decode.exe -X 1.mp3
+```
 
 ### 视频文件
 
