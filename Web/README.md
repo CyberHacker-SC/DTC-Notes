@@ -1737,10 +1737,12 @@ http://xxx/?id=0b1111101000
 - 调用原生类
 
 
-  - 遇到一道题，突破口是 `echo new $_POST['a']($_POST['b']);`，需要调用原生类来读文件。此时使用 `SplFileObject` 类 （`SplFileObject('flag.php')`），参数: `a=SplFileObject&b=php://filter/read=convert.base64-encode/resource=flag.php`（至于这里使用的伪协议，因为使用伪协议会直接读取文件内容，如果不用伪协议，会调用这个 php 文件，未必会输出内容）
+  - 遇到一道题，突破口是 `echo new $_POST['a']($_POST['b']);` (`function(参数)`)，需要调用原生类来读文件。此时使用 `SplFileObject` 类 （`SplFileObject('flag.php')`），参数: `a=SplFileObject&b=php://filter/read=convert.base64-encode/resource=flag.php`（至于这里使用的伪协议，因为使用伪协议会直接读取文件内容，如果不用伪协议，会调用这个 php 文件，未必会输出内容）
   - `FilesystemIterator('glob:///fl*')` 可以读根目录下 `fl` 开头的文件 (其他目录同理，该类只能获取具体的某个文件)。
 
-- 使用16进制绕过正则，举例: `O:9:"catalogue":2:{s:5:"class";s:13:"SplFileObject";s:4:"data";s:5:"/flag";}`，由于 `/object/i` 被正则匹配，这里将 `b` 改为十六进制，并在前面加 `\`，将 SplFileObject 前面的 `s` 改为 `S` (大写)即可（这样反序列化就能识别16进制字符串的名称）。最终得到 `O:9:"catalogue":2:{s:5:"class";S:13:"SplFileO\62ject";s:4:"data";s:5:"/flag";}`
+- `SplFileObject` 使用16进制绕过正则，举例: `O:9:"catalogue":2:{s:5:"class";s:13:"SplFileObject";s:4:"data";s:5:"/flag";}`，由于 `/object/i` 被正则匹配，这里将 `b` 改为十六进制，并在前面加 `\`，将 SplFileObject 前面的 `s` 改为 `S` (大写)即可（这样反序列化就能识别16进制字符串的名称）。最终得到 `O:9:"catalogue":2:{s:5:"class";S:13:"SplFileO\62ject";s:4:"data";s:5:"/flag";}`
+
+- 字符串逃逸：原理：如，题目中是 `str_replace('fuck', 'loveU', serialize($msg));`，利用 fuck 到 loveU 每次替换可以新增1个字符的特点，直到恰好把后面需要的那段反序列化字符串挤出去。挤出去后，后面的需要的字符串恰好构成了新的一部分。（最后面还有一段原先生成的字符串，会被识别为无效反序列化字符串[因为和前面自己构造的内容重复？]，所以不会执行）例题: https://ctf.show/challenges#web262-722 (选择 web262 题) ，解析: https://blog.csdn.net/Kracxi/article/details/122024419
 
 反序列化代码示例
 
