@@ -4,7 +4,7 @@
     "type": "split",
     "children": [
       {
-        "id": "5872913d2f023781",
+        "id": "a04d0c4bec1b336e",
         "type": "split",
         "children": [
           {
@@ -18,7 +18,7 @@
                   "type": "markdown",
                   "state": {
                     "file": "Crypto/README.md",
-                    "mode": "preview",
+                    "mode": "source",
                     "source": false
                   }
                 }
@@ -26,11 +26,11 @@
             ]
           },
           {
-            "id": "1dfc529f8aa8aa3d",
+            "id": "eb5c33ff7d30ba7d",
             "type": "tabs",
             "children": [
               {
-                "id": "ffcd58d5f2148f74",
+                "id": "04337086e9fc873a",
                 "type": "leaf",
                 "pinned": true,
                 "state": {
@@ -59,7 +59,7 @@
                       },
                       "serial": {
                         "columns": 116,
-                        "data": "\u001b[32;1m➜  \u001b[36mDTC-Notes\u001b[0m \u001b[34;1mgit:(\u001b[31mmain\u001b[34m) \u001b[33m✗\u001b[0m git a",
+                        "data": "\u001b[32;1m➜  \u001b[36mDTC-Notes\u001b[0m \u001b[34;1mgit:(\u001b[31mmain\u001b[34m) \u001b[33m✗\u001b[0m git ",
                         "rows": 16
                       }
                     }
@@ -204,7 +204,7 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "ffcd58d5f2148f74",
+  "active": "04337086e9fc873a",
   "lastOpenFiles": [
     "Crypto/README.md",
     "Web/README.md",

@@ -482,6 +482,108 @@ Brainfuck 是由 Urban Müller 在 1993 年创造的，它只有 8 个简单的�
 Ook! 是由 David Morgan-Mar 创造的，它是 Brainfuck 的一个变体，设计的目标是为 orangutans（猩猩）设计一种编程语言。Ook! 的语法和 Brainfuck 完全相同，只是将 Brainfuck 的八个命令分别替换为了 "Ook."、"Ook?" 和 "Ook!" 的三个词组的八种不同组合。因此，任何在 Brainfuck 中编写的程序都可以直接转换为 Ook!，反之亦然。
 
 总的来说，Brainfuck 和 Ook! 的关系在于，Ook! 是 Brainfuck 的一个直接变体，它们在语法上完全相同，只是命令的表示方式不同。
+
+自动识别并解密 Brainfuck 和 Ook! 的脚本:
+
+```python
+# 只需要修改此值，自动识别 Brainfuck 和 ook
+text = '''Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
+Ook. Ook. Ook. Ook. Ook. Ook! Ook? Ook! Ook! Ook. Ook? Ook. Ook. Ook. Ook.
+Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
+Ook. Ook? Ook. Ook? Ook! Ook. Ook? Ook. Ook. Ook. Ook. Ook! Ook. Ook. Ook.
+Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook! Ook. Ook? Ook. Ook.
+Ook. Ook. Ook. Ook. Ook. Ook! Ook? Ook! Ook! Ook. Ook? Ook! Ook! Ook! Ook!
+Ook! Ook! Ook? Ook. Ook? Ook! Ook. Ook? Ook! Ook! Ook! Ook! Ook! Ook. Ook.
+Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook! Ook. Ook? Ook.
+Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook! Ook? Ook! Ook! Ook. Ook? Ook.
+Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook? Ook. Ook? Ook! Ook. Ook? Ook. Ook.
+Ook. Ook. Ook. Ook. Ook. Ook. Ook! Ook. Ook? Ook. Ook. Ook. Ook. Ook. Ook.
+Ook. Ook! Ook? Ook! Ook! Ook. Ook? Ook! Ook! Ook! Ook! Ook! Ook! Ook? Ook.
+Ook? Ook! Ook. Ook? Ook! Ook! Ook! Ook! Ook! Ook! Ook! Ook. Ook! Ook. Ook!
+Ook! Ook! Ook! Ook! Ook! Ook! Ook! Ook! Ook. Ook? Ook. Ook. Ook. Ook. Ook.
+Ook. Ook. Ook. Ook. Ook! Ook? Ook! Ook! Ook. Ook? Ook. Ook. Ook. Ook. Ook.
+Ook. Ook. Ook. Ook? Ook. Ook? Ook! Ook. Ook? Ook. Ook. Ook. Ook. Ook! Ook.
+Ook? Ook. '''
+
+
+def decode(code, translation):
+    return ''.join(translation[code[i:i+9]] for i in range(0, len(code), 9))
+
+def run_brainfuck(code):
+    code = [c for c in code if c in ['<', '>', '+', '-', '.', ',', '[', ']']]
+    memory = [0] * 30000
+    pc = 0  # Program counter
+    ptr = 0  # Data pointer
+    stack = []
+    output = []
+    while pc < len(code):
+        cmd = code[pc]
+        if cmd == '>':
+            ptr += 1
+        elif cmd == '<':
+            ptr -= 1
+        elif cmd == '+':
+            memory[ptr] = (memory[ptr] + 1) % 256
+        elif cmd == '-':
+            memory[ptr] = (memory[ptr] - 1) % 256
+        elif cmd == '.':
+            output.append(chr(memory[ptr]))
+        elif cmd == ',':
+            memory[ptr] = ord(input())
+        elif cmd == '[':
+            if memory[ptr] == 0:
+                bracket_count = 1
+                while bracket_count != 0:
+                    pc += 1
+                    if code[pc] == '[':
+                        bracket_count += 1
+                    elif code[pc] == ']':
+                        bracket_count -= 1
+            else:
+                stack.append(pc)
+        elif cmd == ']':
+            if memory[ptr] == 0:
+                stack.pop()
+            else:
+                pc = stack[-1] - 1
+        pc += 1
+    return ''.join(output)
+
+def run_ook(code):
+    OOK_COMMANDS = {
+        'Ook. Ook?': '>',
+        'Ook? Ook.': '<',
+        'Ook. Ook.': '+',
+        'Ook! Ook!': '-',
+        'Ook! Ook.': '.',
+        'Ook. Ook!': ',',
+        'Ook! Ook?': '[',
+        'Ook? Ook!': ']',
+    }
+    bf_code = ''
+    ook_commands = code.split()
+    for i in range(0, len(ook_commands), 2):
+        bf_code += OOK_COMMANDS[ook_commands[i] + ' ' + ook_commands[i+1]]
+    return run_brainfuck(bf_code)
+
+
+def main():
+    # 测试 Brainfuck 代码
+    try:
+        brainfuck_text = run_brainfuck(text)
+        print(f'Brainfuck 解密结果:{brainfuck_text}')
+    except:
+        print('Brainfuck 解密失败')
+    # 测试 ook 代码
+    try:
+        ook_text = run_ook(text)
+        print(f'ook 解密结果:{ook_text}')
+    except:
+        print('ook 解密失败')
+
+if __name__ == '__main__':
+    main()
+```
 ##### ook
 
 遇到类似的，可能把 Ook 替换为了其他字母，要能反应过来是 ook 密码
