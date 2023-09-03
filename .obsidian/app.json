@@ -4,5 +4,8 @@
   "attachmentFolderPath": "./static/img",
   "newFileLocation": "current",
   "alwaysUpdateLinks": true,
-  "trashOption": "none"
+  "trashOption": "none",
+  "strictLineBreaks": true,
+  "spellcheck": false,
+  "autoConvertHtml": false
 }

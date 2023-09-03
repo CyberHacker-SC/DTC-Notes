@@ -4,13 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "8cb7c969414b3c8a",
+        "id": "5872913d2f023781",
         "type": "split",
         "children": [
           {
             "id": "1efec50e2745b4a6",
             "type": "tabs",
-            "dimension": 77.56539235412475,
             "children": [
               {
                 "id": "cd31846e85452690",
@@ -18,7 +17,7 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "Web/README.md",
+                    "file": "Crypto/README.md",
                     "mode": "preview",
                     "source": false
                   }
@@ -27,12 +26,11 @@
             ]
           },
           {
-            "id": "30135f0eac1ff441",
+            "id": "1dfc529f8aa8aa3d",
             "type": "tabs",
-            "dimension": 22.43460764587525,
             "children": [
               {
-                "id": "25dc3f32161bb9b6",
+                "id": "ffcd58d5f2148f74",
                 "type": "leaf",
                 "pinned": true,
                 "state": {
@@ -60,9 +58,9 @@
                         "useWin32Conhost": true
                       },
                       "serial": {
-                        "columns": 169,
-                        "data": "\u001b[32;1m➜  \u001b[36mDTC-Notes\u001b[0m \u001b[34;1mgit:(\u001b[31mmain\u001b[34m) \u001b[33m✗\u001b[0m git add .\r\n\u001b[32;1m➜  \u001b[36mDTC-Notes\u001b[0m \u001b[34;1mgit:(\u001b[31mmain\u001b[34m) \u001b[33m✗\u001b[0m git status\r\nOn branch main\r\nYour branch is up to date with 'origin/main'.\r\n\r\nChanges to be committed:\r\n  (use \"git restore --staged <file>...\" to unstage)\r\n\u001b[8C\u001b[32mmodified:   Misc/README.md\r\n\r\n\u001b[1m➜  \u001b[36mDTC-Notes\u001b[0m \u001b[34;1mgit:(\u001b[31mmain\u001b[34m) \u001b[33m✗\u001b[0m git add ",
-                        "rows": 6
+                        "columns": 116,
+                        "data": "\u001b[32;1m➜  \u001b[36mDTC-Notes\u001b[0m \u001b[34;1mgit:(\u001b[31mmain\u001b[34m) \u001b[33m✗\u001b[0m git a",
+                        "rows": 16
                       }
                     }
                   },
@@ -126,7 +124,8 @@
               "state": {}
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -205,10 +204,10 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "25dc3f32161bb9b6",
+  "active": "ffcd58d5f2148f74",
   "lastOpenFiles": [
-    "Web/README.md",
     "Crypto/README.md",
+    "Web/README.md",
     "README.md"
   ]
 }
