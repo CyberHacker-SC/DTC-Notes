@@ -7,7 +7,7 @@
 - 关于10进制和16进制
   - 如果遇到一串10进制编码，一般可以先转为16进制，再看看16进制是不是图片 (复制到 hex 中保存)。此外，十进制还可能表示 ascci 码，使用[脚本](####特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag)还原 flag
   - 看到 16 进制（如 `d43963e92b012aab` 可以联想到反查 md5 [通过在线网站查询]，题目出的 md5 一般不难，还可以[碰撞](#####通用碰撞模版)）
-  - 如果上面两种方法得到的16进制都不能转换，可以考虑题目是否对 ascci 码做了偏移，使用[脚本](####特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag)还原 flag（**注意**：只要确认这个字符串不是图片或 md5，直接使用该脚本即可，该脚本已经完善为 10进制、16进制 转 unicode 字符串 的**通用脚本**）
+  - 如果上面两种方法得到的16进制都不能转换，可以考虑题目是否对 ascci 码做了偏移，使用[脚本](####特殊情况：16进制/10进制/2进制偏移后的字符串转 flag)还原 flag（**注意**：只要确认这个字符串不是图片或 md5，直接使用该脚本即可，该脚本已经完善为 10进制、16进制转 unicode 字符串的**通用脚本**）
   - 如果是这种有空格的10进制 `33 43 43 13 44 21 54 34 45 21 24 33 14 21 31 11 22 12 54 44 11 35 13 34 14 15`，应该想到 [Tap Code](####Tap Code)
 
 - 不要相信 TomatoTools 中文本框里复制出的内容，所见不一定是所得。建议复制到备忘录后，再复制一次
@@ -729,6 +729,30 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 在线解密：http://www.metools.info/code/affinecipher183.html
 
+#### Quoted-printable
+
+形如
+
+```
+=E7=94=A8=E4=BD=A0=E9=82=A3=E7=81=AB=E7=83=AD=E7=9A=84=E5=98=B4=E5=94=87=E8=AE=A9=E6=88=91=E5=9C=A8=E5=8D=88=E5=A4=9C=E9=87=8C=E6=97=A0=E5=B0=BD=E7=9A=84=E9=94=80=E9=AD=82
+```
+
+解密脚本
+
+```python
+# Quoted-printable 编码的字符串
+text = "=E7=94=A8=E4=BD=A0=E9=82=A3=E7=81=AB=E7=83=AD=E7=9A=84=E5=98=B4=E5=94=87=E8=AE=A9=E6=88=91=E5=9C=A8=E5=8D=88=E5=A4=9C=E9=87=8C=E6=97=A0=E5=B0=BD=E7=9A=84=E9=94=80=E9=AD=82"
+
+
+import quopri
+
+def decode_quopri(text):
+    return quopri.decodestring(text).decode()
+
+decoded_text = decode_quopri(text)
+print(decoded_text)
+```
+
 #### 兽音密码
 
 形如
@@ -748,6 +772,19 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 ```
 
 解码方法：打开 010 editor，选择 tools，选择 convert，选择 convert to EBCDIC (使用后记得还原)
+
+#### serpent
+
+- 需要密钥
+
+在 `.dat` 文件中，遇到的一道题，用 010 打开 `.dat` 文件为
+
+```
+ ¦…~v†Üi3¤ÇmKª+Ó¶È:"
+m»èr^Ð?{¸&îú 43ÚäéÂ y
+```
+
+在线解密: http://serpent.online-domain-tools.com/ (不要通过文本解密 (经测试无效)。需要在该网站上传 `.dat` 文件，然后输入密钥解密)
 
 #### 福尔摩斯小人密码
 
