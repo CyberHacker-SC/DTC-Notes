@@ -398,9 +398,15 @@ RSA 的安全性基于一个事实：虽然 n、e 和 c 都是公开的，但是
 
 ##### 将 n 分解为 p,q
 
+- 不是很大的 n 都可以试试该方法
+
 原理类似 md5 的彩虹表，提前将结果存储在数据库中
 
 在线工具: http://factordb.com/
+
+##### 在线 sagemath
+
+https://sagecell.sagemath.org/?q=iyqcsn
 
 #### 题型
 
@@ -672,6 +678,36 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+#### SageMath 还原
+
+执行链接: https://sagecell.sagemath.org/?q=iyqcsn
+
+##### Coppersmith 攻击
+
+条件: `p>>128>>128` 被移位，且p末尾是很多0，所以我们猜想这是Coppersmith攻击。已知 e, p (被移位), n, c
+
+```python
+from sage.all import *
+n = 0x79e0bf9b916e59286163a1006f8cefd4c1b080387a6ddb98a3f3984569a4ebb48b22ac36dff7c98e4ebb90ffdd9c07f53a20946f57634fb01f4489fcfc8e402865e152820f3e2989d4f0b5ef1fb366f212e238881ea1da017f754d7840fc38236edba144674464b661d36cdaf52d1e5e7c3c21770c5461a7c1bc2db712a61d992ebc407738fc095cd8b6b64e7e532187b11bf78a8d3ddf52da6f6a67c7e88bef5563cac1e5ce115f3282d5ff9db02278859f63049d1b934d918f46353fea1651d96b2ddd874ec8f1e4b9d487d8849896d1c21fb64029f0d6f47e560555b009b96bfd558228929a6cdf3fb6d47a956829fb1e638fcc1bdfad4ec2c3590dea1ed3
+p4 = 0xd1c520d9798f811e87f4ff406941958bab8fc24b19a32c3ad89b0b73258ed3541e9ca696fd98ce15255264c39ae8c6e8db5ee89993fa44459410d30a0a8af700ae3aee8a9a1d6094f8c757d3b79a8d1147e85be34fb260a970a52826c0a92b46cefb5dfaf2b5a31edf867f8d34d22229
+#p4为p去除0的剩余位
+e = 0x10001
+pbits = 1024
+kbits = pbits - p4.nbits()
+print(p4.nbits())
+p4 = p4 << kbits
+PR.<x> = PolynomialRing(Zmod(n))
+f = x + p4
+roots = f.small_roots(X=2^kbits, beta=0.4)
+if roots:        
+    p = p4+int(roots[0]) 
+    print("n= "+str(n))
+    print("p= "+str(p))
+    print("q= "+str(n//p))
+```
+
+
 
 #### 相关函数及解法
 
