@@ -680,6 +680,63 @@ if __name__ == '__main__':
     main()
 ```
 
+##### 文件题 (public.key 和 flag.enc)
+
+public.key 是 公钥加密文件，可以解析出 n 和 e
+
+flag.enc 大概率是私钥加密密文，此处把他当成 RSA 加密文件解即可
+
+###### 1.解析 public.key 为 n 和 e
+
+- 已有文件 public.key
+
+```python
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
+with open("easyrsa8/public.key", "rb") as key_file:
+    public_key = serialization.load_pem_public_key(
+        key_file.read(),
+        backend=default_backend()
+    )
+
+public_numbers = public_key.public_numbers()
+
+n = public_numbers.n
+e = public_numbers.e
+
+print("n:", n)
+print("e:", e)
+```
+
+再使用在线网站将 n 分为两个大质数 p 和 q 即可
+
+###### 2.使用 RSA 解密 flag.enc
+
+```python
+import libnum
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
+
+def main():
+    n = 10306247299477991196335954707897189353577589618180446614762218980226685668311143526740800444344046158260556585833057716406703213966249956775927205061731821632025483608182881492214855240841820024816859031176291364212054293818204399157346955465232586109199762630150640804366966946066155685218609638749171632685073
+    e = 65537
+    p = 97
+    q = 106249972159566919549855203174197828387397831115262336234662051342543151219702510584956705611794290291345944183845955839244363030579896461607496959399297130227066841321473005074379950936513608503266587950271044991876848389878395867601515004796212227929894460104645781488319246866661398816686697306692491058609
+
+    phi=(p-1)*(q-1)
+    d = libnum.invmod(e,phi)
+    privatekey = RSA.construct((n,e,d,p,q))
+    rsa = PKCS1_OAEP.new(privatekey)
+    m = rsa.decrypt(open('easyrsa8/flag.enc', 'rb').read()).decode()
+    print(m)
+
+
+if __name__ == '__main__':
+    main()
+```
+
 #### SageMath 还原
 
 执行链接: https://sagecell.sagemath.org/?q=iyqcsn
