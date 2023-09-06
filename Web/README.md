@@ -964,7 +964,7 @@ SELECT * FROM users WHERE username='vampire     ';
 - 在做题的时候尽量多试几个题目的提示后缀​（如 index.php、source.php）
 
 ##### 上传
-- 拿到 webshell
+- 如果上传到当前目录没用权限，可以尝试上传到 `/tmp` 目录。`/tmp`目录对于所有用户都是可写的，这意味着任何用户都可以在该目录中创建和修改文件
 
 - 一般来说，题目可能过滤文件类型、文件后缀、文件头等
 
@@ -2378,7 +2378,7 @@ O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 
 ##### 反序列化 phar
 
-- 抓住突破口 `echo file_get_contents`，会触发 phar 中的内容执行
+- 抓住突破口 `echo file_get_contents` 或 `file_exists`，会触发 phar 中的内容执行
 
 例题:
 
@@ -2618,6 +2618,21 @@ $c = array(
 
 echo $c["foo"]; // 输出 "bar"
 ```
+
+##### PHP 取地址引用
+
+`&` 可以取地址引用
+
+```
+<?php 
+    $a = 1;
+    $b = &$a;
+    $a += 1;
+    echo $b;
+?>
+```
+
+会输出 2
 
 ##### 科学计数法
 
