@@ -1067,7 +1067,8 @@ GIF89a
 
 ###### 构造 phar
 
-- 漏洞突破口：`include()` 或 `file_get_contents()` 。（服务端往往对我们是不可见的，可以用 `phar` 来测试找到的 GET 或 POST 参数） 
+- 漏洞突破口：`include()` 或 `file_get_contents()`  或 `file_exists`
+- 利用的点是 `include` 会执行文件包含的内容
 
 下面代码会生成一个 example.phar 的文件
 
@@ -1985,6 +1986,8 @@ http://xxx/?p=GLOBALS
 
 ##### Session 条件竞争
 
+- 这个方法很强大，请看[另一个通用脚本](######另一个通用脚本)
+
 利用点：
 
 1.题目可以访问 `phpinfo()`
@@ -2084,6 +2087,7 @@ import threading
 import sys
 session=requests.session()
 sess='yu22x'
+# 修改这两个 url，第一个是写入 session，第二个是读文件的点
 url1="http://3ba96309-5cba-4cc2-bf84-0b916069b4f4.node4.buuoj.cn:81/secr3t.php"
 url2='http://3ba96309-5cba-4cc2-bf84-0b916069b4f4.node4.buuoj.cn:81/secr3t.php?file=/tmp/sess_'+sess
 # 修改这里的执行命令即可
@@ -2274,6 +2278,8 @@ http://xxx/?id=0b1111101000
 
 - `w00m->{a}`: 表示调用 w00m 对象的 a 方法，a 是方法名的字符串
 
+  `$this->string->$value();` ，此时 `value` 是个变量，方法名也是由 `value` 的值决定
+
 - 反序列化也支持反序列化字符串或数组（键值对），这里举例将键值对序列化
 
   ```php
@@ -2379,6 +2385,7 @@ O:+4:"Demo":1:{s:10:"Demofile";s:8:"fl4g.php";}
 ##### 反序列化 phar
 
 - 抓住突破口 `echo file_get_contents` 或 `file_exists`，会触发 phar 中的内容执行
+- 利用的点是：只要文件会关闭，就会触发 `__destruct` 执行
 
 例题:
 
@@ -2451,6 +2458,7 @@ $phar->setStub("GIF89a"."<?php __HALT_COMPILER(); ?>");
 $phar-> addFromString('test.txt','yu22x');
 //$phar->setMetadata($Test);第一步
 
+// 关键一步，让 $a 执行，原理是 $a 类被销毁时执行析构方法
 $phar->setMetadata($a);
 
 $phar->stopBuffering();
