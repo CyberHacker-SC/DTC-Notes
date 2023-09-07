@@ -924,7 +924,7 @@ SELECT * FROM users WHERE username='vampire     ';
   - 常用套路 `file:///etc/password`; `file:///var/www/html/index.php` ; `file:///flag; glob:///*` 读取根目录下的所有文件; `glob:///fl*` 读取根目录下 fl* 开头的文件
   - 培养目录提权思维，如果一道题本身禁止访问 /flag.php，可以通过参数构造地址的方法 (类似 `http://127.0.0.1/flag.php`) 来访问。curl_setopt() 函数就类似 Python 的 requests，可以访问外部或内部地址（正则绕过：`localhost`、`0`、`127.0.0.x 、127.0.1、127.1`、`127.0.0。1`、`sudo.cc`）
   - 如果网站使用无密码 MySQL、Redis，可以考虑用 Gopherus 实现 RCE 注入
-- PHP 可以像 SQL 注入一样拼接字符串，如 `a'].system('cat /f*');//` (核心是使用 `'` 闭合，然后使用 `.` 拼接，`//` 注释。也可以使用 `&&` 拼接)
+- PHP 可以像 SQL 注入一样拼接字符串，如 `a'].system('cat /f*');//` (核心是使用 `'` 闭合字符串，然后使用 `.` 拼接(拼接后两侧的内容会先执行)，`//` 注释。也可以使用 `&&` 拼接)
 
 
 #### PHP 绕过普通正则表达式的基本替代符

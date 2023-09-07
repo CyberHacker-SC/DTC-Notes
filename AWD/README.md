@@ -1,0 +1,190 @@
+AWD
+======
+
+更改 `~/.bashrc` 文件
+
+```bash
+# 密码
+PASSWORD="123"
+
+while true; do
+    echo -n "Enter command: "
+    read -a command
+    if [ "${command[0]}" == "exit" ]; then
+        exit 0
+    fi
+    echo -n "Enter password: "
+    read -s entered_password
+    echo
+    if [ "$entered_password" == "$PASSWORD" ]; then
+        "${command[@]}"
+    else
+        echo "Wrong password, exiting."
+        exit 1
+    fi
+done
+
+```
+
+必须输入密码才能执行命令
+
+# PHP
+
+## 防御
+
+### **[AoiAWD](https://github.com/DasSecurity-HatLab/AoiAWD)**
+
+docker compose 运行后，找到 AccessToken (生成的临时 token)
+
+访问 Web 端:`http://0.0.0.0:1337/`
+
+#### TapeWorm
+
+一个PHP Web的影子外壳，其原理是自动注入到**所有**PHP文件的头部，支持输入输出流量的抓取与上报，同时具有处理输出数据的能力，实现输出内容篡改。
+
+- 程序内部的代码已经实现了单实例启动，即便是层层include了多次，也只会运行最先触发的影子外壳。所以不用担心复杂的题目影响性能。
+- 自动注入程序会智能识别面向对象的文件(包含 namespace 关键字)，和直接面向过程的PHP文件，**一般**情况下不会造成语法错误。
+- 自动注入程序会识别已经被注入的脚本并加以跳过，所以多次反复无脑对web根目录运行注入程序并不会造成什么太大的问题。
+- 运行compile.php就可以生成自动注入程序，一般情况下可以上传到靶机上直接对web根目录进行注入，或者在选手电脑上注入好之后再上传到靶机上。
+- **一时注入一时爽，忘记备份宕机慌**
+- 直接运行注入程序会显示帮助文本，其中比较重要的一些参数是:
+  - -d: 需要注入外壳的web根目录，会从此目录递归感染所有的PHP文件。
+  - -s: 输入可以从靶机访问到探针上线地址的URL，比如说192.168.???.???:8023。
+
+```
+用法：./tapeworm.phar [路径]
+
+  -d [路径] WebMonitor注入目录。
+  -s [URI] 日志记录服务器URI。默认值：127.0.0.1:8023
+  -f [路径] 注入文件路径。默认值：{$dir}
+  -h 此帮助信息
+```
+
+示例：
+
+```bash
+./tapeworm.phar -d ./ -s 172.20.10.6:8023 -f test
+```
+
+如果 `/usr/bin/php` 找不到 ，创建软链接 (`/usr/local/bin/php` 是 `whereis php` 显示的 php 路径)
+
+```bash
+ln -s /usr/local/bin/php /usr/bin/php
+```
+
+### 日志监控
+
+log.php
+
+```php
+<?php
+error_reporting(0);
+$ip = $_SERVER["REMOTE_ADDR"];      //记录访问者的ip
+$filename = $_SERVER['PHP_SELF'];       //访问者要访问的文件名
+$parameter = $_SERVER["QUERY_STRING"];      //访问者要请求的参数
+$method = $_SERVER['REQUEST_METHOD'];       //请求方法
+$uri = $_SERVER['REQUEST_URI'];             //请求URI
+$time = date('Y-m-d H:i:s',time());     //访问时间
+$post = file_get_contents("php://input",'r');       //接收POST数据
+$post = file_get_contents("php://input",'r');       //接收POST数据
+if($_FILES){
+    foreach ($_FILES as $key => $value) {
+        echo $key;
+    }
+    $s=$key;
+    $file_name=$_FILES[$key]['name']."\r\n";
+    $file_content=file_get_contents($_FILES[$key]['tmp_name'])."\r\n";
+}
+else{
+    $file_name='';
+    $file_content='';
+
+}
+$logadd ='IP：'.$ip."\r\n".'URI：'.$uri.' '.$parameter.'Method：'.$method."\r\n";
+// log记录
+$fh = fopen("./log.txt", "a+");
+
+fwrite($fh, $logadd);
+fwrite($fh, print_r($_COOKIE, true)." ");
+fwrite($fh, $post." ");
+fwrite($fh, $file_name);
+fwrite($fh, $file_content);
+fwrite($fh, "\n");
+
+fclose($fh);
+?>
+```
+
+然后在所有 `php` 中 `include` 这个文件
+
+```bash
+find . -name "*.php"|xargs sed -i '1i\<?php include "log.php"?>'
+```
+
+### 终止不死马进程
+
+```php
+<?php
+system('kill -9 -1;rm -rf shell.php'); ?>
+```
+
+1. `system('kill -9 -1')`：这个命令会尝试终止服务器上的所有进程。在这里，`kill` 是一个用于终止进程的 Unix 命令，`-9` 是发送给进程的信号类型（在这种情况下是 SIGKILL，它会立即终止进程），而 `-1` 是需要终止的进程 ID（在这种情况下，`-1` 通常表示所有可以被当前用户进程终止的进程）。
+2. `rm -rf shell.php`：这个命令会尝试删除名为 `shell.php` 的文件。在这里，`rm` 是一个 Unix 命令，用于删除文件或目录，`-r` 或 `-R` 选项表示递归删除（如果 `shell.php` 是一个目录，那么它和它的所有子目录和文件都会被删除），`-f` 选项表示强制删除（即使文件是只读的也会被删除）。
+
+这段代码具有破坏性，可能会导致服务器上的数据丢失，并可能影响服务器的正常运行。在任何情况下都不应该在生产环境中运行这样的代码。
+
+### 禁止动态构建特定的函数
+
+安全文件 security.php
+
+```php
+// security.php
+<?php
+$func = $_GET['func'];  // 假设 $func 的值来自用户输入
+
+$disallowed_functions = ['system', 'exec', 'shell_exec'];  // 这是一个包含不允许的函数名的数组
+
+if (in_array($func, $disallowed_functions)) {
+    die('Error: disallowed function');  // 如果 $func 的值是不允许的函数名，就显示错误信息并终止程序
+}
+```
+
+然后，在其他的 PHP 脚本中，你可以这样引用它：
+
+```php
+// other_script.php
+<?php
+require 'security.php';  // 引入 security.php 文件
+
+// 其他的代码...
+```
+
+这样，`security.php` 文件中的代码会在每个引用它的脚本中运行，从而在全局范围内生效。
+
+
+
+# Linux
+
+## 基本命令
+
+压缩
+
+```bash
+tar -czvf 压缩文件名.tar.gz 要压缩的文件或目录
+```
+
+# 工具
+
+## SMB
+
+https://hub.docker.com/r/dperson/samba
+
+```bash
+docker run -itd --name samba -p 139:139 -p 445:445 \
+            -v /Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/shared_directory:/mount \
+            dperson/samba \
+            -s "share;/mount;yes;no;no;teammate;admin" \
+            -u "teammate;vtvrYrVoMt2VGUtT" -p
+```
+
+Windows 访问 `\\192.168.66.168\share` 即可
