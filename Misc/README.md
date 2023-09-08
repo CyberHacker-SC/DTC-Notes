@@ -152,6 +152,18 @@ python3.6 bwmforpy3.py decode 1.png 2.png 3.png
 
 1.png 是原图，2.png 是加了水印的图片 (如果不知道 1.png 和 2.png 的顺序，可以尝试互换顺序)，得到 3.png 是去除水印的图片
 
+### 图片自动做拼图
+
+拼接一个 6*6 的图片为一张图，如图
+
+![image-20230909011608438](static/img/image-20230909011608438.png)
+
+拼图命令为:
+
+```bash
+montage *.jpg -tile 6x6 -geometry +0+0 flag.jpg 
+```
+
 ### jphs
 
 有的图片(如部分 jpg)需要用 Jphswin 打开并输出为 txt 文件。Mac 使用的 win 11 虚拟机，文件在 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Misc/Windows工具/Jphswin.exe`
