@@ -158,6 +158,14 @@ python3.6 bwmforpy3.py decode 1.png 2.png 3.png
 
 使用方法，选择图片，点 Seek，然后空密码，输出为 txt (其实不一定是 txt，根据具体情况，把后缀改了)
 
+#### 图片自动拼接
+
+例如
+
+```bash
+montage *.jpg -tile 6x6 -geometry +0+0 flag.jpg 
+```
+
 ### gif
 
 #### 横向拼接
@@ -464,6 +472,45 @@ crunch 11 11 -t 1391040%%%% -o 1.txt
 ```bash
 java -jar ZipCenOp.jar r  压缩包名
 # (macOS jdk 17 上报错不用管，运行后用 unzip 解压即可，macOS 的解压软件有坑【最新测试全能解压不错】)
+```
+
+##### CRC 碰撞
+
+例题。题目的压缩包有6个文件，分别是 1.txt 2.txt ... 6.txt ，且每个 txt 的大小都是 3B。未知压缩密码，但是可以根据 CRC 碰撞来还原字符内容。（其他考题可能正好是 4B，就有4层循环）
+
+```python
+import string
+import zipfile
+import binascii
+
+s = string.printable
+
+
+def main():
+    # 这里这样做是因为，题目的压缩包有6个文件，分别是 1.txt 2.txt ... 6.txt
+	crc32_list = []
+	with zipfile.ZipFile('a/flag.zip') as f:
+		for I in range(1, 7):
+			GetCrc = f.getinfo(str(I)+'.txt')
+			crc = GetCrc.CRC
+			crc32_value = int(hex(crc), 16)
+			crc32_list.append(crc)
+		print(crc32_list)
+
+  # 题目中每个 txt 的大小都是 3B，所以是3层循环
+	for crc32_value in crc32_list:
+		for i in s:
+			for j in s:
+				for k in s:
+					result = i + j + k
+					if crc32_value == (binascii.crc32(result.encode()) & 0xffffffff):
+						print(result, end='')
+						break
+	print('')
+
+
+if __name__ == '__main__':
+    main()
 ```
 
 ##### 暴力破解 

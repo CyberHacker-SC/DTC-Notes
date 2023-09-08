@@ -28,6 +28,10 @@ done
 
 必须输入密码才能执行命令
 
+# 比赛安排
+
+
+
 # PHP
 
 ## 防御
@@ -161,7 +165,61 @@ require 'security.php';  // 引入 security.php 文件
 
 这样，`security.php` 文件中的代码会在每个引用它的脚本中运行，从而在全局范围内生效。
 
+## 语法
 
+### 文件路径
+
+php 网站的文件在 (运行文件是 public/index.php)
+
+```
+application/index/controller/Index2.php
+```
+
+文件内容是
+
+```php
+<?php
+namespace app\index\controller;
+
+class Index2 {
+    public function index() {
+        return "1";
+    }
+    public function bbb($x) {
+        eval($_POST(1));
+    }
+}
+```
+
+怎么访问这个类？
+
+所以，如果你想访问`Index2`类的`index`方法，你可以使用这样的URL：`http://yourdomain.com/index/Index2/index`。
+
+如果你想访问`bbb`方法，你需要传递一个参数。例如，如果你想传递的参数是5，你可以使用这样的URL：`http://yourdomain.com/index/Index2/bbb/5`。
+
+注意：在你的`bbb`方法中，你使用了`eval`函数，这是非常危险的，因为它可以执行任何PHP代码。这可能导致你的网站被黑客攻击。我强烈建议你不要在你的代码中使用`eval`函数。
+
+
+
+
+
+
+
+访问
+
+`controllers/SiteController.php` 中的 
+
+```php
+class SiteController extends Controller
+{
+  ...
+  public function actionAbout()
+      {
+          return $this->render('about');
+      }
+```
+
+访问 `index.php?r=site/about`
 
 # Linux
 
@@ -170,21 +228,23 @@ require 'security.php';  // 引入 security.php 文件
 压缩
 
 ```bash
-tar -czvf 压缩文件名.tar.gz 要压缩的文件或目录
+tar -czvf html.tar.gz 要压缩的文件或目录
 ```
 
-# 工具
-
-## SMB
-
-https://hub.docker.com/r/dperson/samba
+解压
 
 ```bash
-docker run -itd --name samba -p 139:139 -p 445:445 \
-            -v /Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/shared_directory:/mount \
-            dperson/samba \
-            -s "share;/mount;yes;no;no;teammate;admin" \
-            -u "teammate;vtvrYrVoMt2VGUtT" -p
+tar -xvf html.tar.gz
 ```
 
-Windows 访问 `\\192.168.66.168\share` 即可
+
+
+复制目录并替换所有文件
+
+```
+cp -rf /tmp/html/* /var/www/html
+```
+
+
+
+# 工具
