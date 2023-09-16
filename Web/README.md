@@ -977,7 +977,7 @@ SELECT * FROM users WHERE username='vampire     ';
 
 - flag 不仅可以藏在文件中，还可以藏在环境变量中，在终端输入 `env` 查看环境变量
 
-- 如果 php 后缀被绕过，可以尝试 php3|php5|php7|phtml|pht (这些后缀可能被设置识别为 php)
+- 如果 php 后缀被绕过，可以尝试 php3|php5|php7|phtml|pht (这些后缀可能被设置识别为 php)。 (还可以考虑**双写绕过**和**大小写绕过**)
 
 - 文件内容中，如果 `file` 被绕过，增加 `\` 并换行即可，如
 
