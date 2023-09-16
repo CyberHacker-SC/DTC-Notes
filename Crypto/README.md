@@ -3,7 +3,9 @@
 ## 密文解码
 
 - 如果看起来像 base，可能是多层嵌套 base，用其他软件解可能都会报错，这时选择 [basetrack](####basetrack) 自动接码 (有的非标准格式的 base 编码应该用 basetrack 来解)
-- 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit) 。除此之外，如果这段密文很长，还可能是[图片的 base64](####base64 转图片) (TomatoTools 识别不了)
+  - 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit) 。除此之外，如果这段密文很长，还可能是[图片的 base64](####base64 转图片) (TomatoTools 识别不了)
+  - 如果坚持认为密文是 base64 的变体，可以尝试通过 [base64 表偏移获取 flag](####base64 表偏移获取 flag)
+
 - 关于10进制和16进制
   - 如果遇到一串10进制编码，一般可以先转为16进制，再看看16进制是不是图片 (复制到 hex 中保存)。此外，十进制还可能表示 ascci 码，使用[脚本](####特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag)还原 flag
   - 看到 16 进制（如 `d43963e92b012aab` 可以联想到反查 md5 [通过在线网站查询]，题目出的 md5 一般不难，还可以[碰撞](#####通用碰撞模版)）
@@ -22,7 +24,7 @@
 
 #### 10进制转其他
 
-如需转回十进制，用 int(text)
+如需转回十进制，用 `int(text)`、`int(text, 2)`、`int(text, 16)`
 
 ##### 10进制转16进制
 
@@ -244,6 +246,49 @@ def base64_to_image(base64_str, image_path):
 base64_str = '...'
 image_path = 'output.png'  # 输出的图片路径
 base64_to_image(base64_str, image_path)
+```
+
+#### base64 表偏移获取 flag
+
+由于 flag{xxxx...} 开头的字符串的 base64 编码一定是 Zmxh 开头，可以根据求 flag 的偏移量还原 base64 格式的密文。（同理，也可将 `flag` 替换为其他前缀）
+
+```python
+# 修改此处的 s
+s = '3EP/3VNFFmNEAnlHD5dCMmVHD5ad9uG'
+flag_exp = 'Zmxh' # flag{xxxx...} 开头的字符串的 base64 编码一定是 Zmxh 开头 (也可将 flag 替换为其他前缀)
+
+
+import base64
+
+base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+def base64_offset(text):
+    '''
+        计算 base64 表的偏移量
+    '''
+    global base64_table
+    return base64_table.index(text)
+
+
+def main():
+    global base64_table
+    
+    # 计算偏移量
+    diff = base64_offset(flag_exp[0]) - base64_offset(s[0])
+    index = []
+    for one in s:
+        index.append(base64_offset(one) + diff)
+    
+    text = ''
+    for i in index:
+        text += base64_table[i]
+    if len(text)%4!=0:
+        text = text + "=" * (4-(len(text)%4))
+    print(f'base64 解码结果:{text}')
+    print(f'明文:{base64.b64decode(text).decode()}')
+    
+
+if __name__ == '__main__':
+    main()
 ```
 
 ### Hash
