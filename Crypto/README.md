@@ -1433,6 +1433,47 @@ decoded_text = decode_quopri(text)
 print(decoded_text)
 ```
 
+#### 当铺密码
+
+形如:
+
+```
+由田中 由田井 羊夫 由田人 由中人 羊羊 由由王 由田中 由由大 由田工 由由由 由由羊 由中大
+```
+
+当前汉字有多少笔画出头，就是转化成数字几，一般转为数字后再转为对应的ascii码
+
+```python
+# 当前汉字有多少笔画出头，就是转化成数字几,一般转为数字后再转为对应的ascii码
+# 对照表，可以适当修改
+dh = '田口由中人工大土士王夫井羊壮'
+ds = '00123455567899'
+ 
+#一个示例
+#miwen = '由田中 由田井 羊夫 由田人 由中人 羊羊 由由王 由田中 由由大 由田工 由由由 由由羊 由中大'
+miwen = input('请输入要解密的密文：')
+s = ''
+for i in miwen:
+	if i in dh:
+		s += ds[dh.index(i)]
+	else:
+		s += ' '
+print('密文转为数字的结果为(默认十进制):')
+print(s)
+ 
+ 
+ll = s.split(" ")   #按空格分割
+mingwen = ''
+for i in range(0, len(ll)):
+	mingwen += chr(int(ll[i]))
+print('----------明文为----------')
+print(mingwen)
+print('----------明文的小写为----------')
+print(mingwen.lower())
+print('----------明文的大写为----------')
+print(mingwen.upper())
+```
+
 #### 兽音密码
 
 形如
