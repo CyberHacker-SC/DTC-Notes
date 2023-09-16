@@ -10,7 +10,7 @@
   - 如果上面两种方法得到的16进制都不能转换，可以考虑题目是否对 ascci 码做了偏移，使用[脚本](####特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag)还原 flag（**注意**：只要确认这个字符串不是图片或 md5，直接使用该脚本即可，该脚本已经完善为 10进制、16进制转 unicode 字符串的**通用脚本**）
   - 如果是这种有空格的10进制 `33 43 43 13 44 21 54 34 45 21 24 33 14 21 31 11 22 12 54 44 11 35 13 34 14 15`，应该想到 [Tap Code](####Tap Code)
 - 不要相信 TomatoTools 中文本框里复制出的内容，所见不一定是所得。建议复制到备忘录后，再复制一次
-- 看到 flag 顺序是乱的（如 `fa{hsi_refa}lgti_stu_lg`），不止要想到凯撒密码，还要想到栅栏密码
+- 看到 flag 顺序是乱的（如 `fa{hsi_refa}lgti_stu_lg`），不止要想到凯撒密码，还要想到栅栏密码。此外，还要想到 Atbash Cipher
 - 如果题目中提示有两个密钥，如 `19_20`，要联想到是[仿射密码](####仿射密码)
 
 ### ciphey
@@ -174,7 +174,7 @@ if __name__ == '__main__':
 
 - 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别 (用 magic 模式)
 
-#### basetrack
+#### basecrack
 
 **普通解码**
 ```bash
@@ -185,6 +185,33 @@ python3 basecrack.py -b 编码文本
 
 ```bash
 python basecrack.py --magic -b 编码文本
+```
+
+参数:
+
+- 读文件: `-f file.txt`
+
+#### 破解 Base 家族 (超大参数量)
+
+如果参数量大到 basecrack 无法运行，可以使用此方法破解 base 家族加密
+
+```python
+import string
+import base64
+with open('/programme/CTF/测试用/base家族/base.txt') as f:
+    text = f.read()
+while(1):
+    try:
+        text = base64.b64decode(text).decode()
+    except Exception as e:
+        try:
+            text = base64.b32decode(text).decode()
+        except Exception as e:
+            try:
+                text = base64.b16decode(text).decode()
+            except Exception as e:
+                break
+print(text)
 ```
 
 #### base64 转图片
@@ -1297,6 +1324,45 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 ![](static/img/仿射密码.jpg)
 
 在线解密：http://www.metools.info/code/affinecipher183.html
+
+#### Atbash Cipher (埃特巴什码 )
+
+埃特巴什码（Atbash Cipher）其实可以视为下面要介绍的简单替换密码的特例，其原理为：它使用字母表中的最后一个字母代表第一个字母，倒数第二个字母代表第二个字母。在罗马字母表中，它是这样出现的： 明文：A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 密文：Z Y X W V U T S R Q P O N M L K J I H G F E D C B A 
+
+形如:
+
+```
+uozt{Zgyzhv_xlwv_uiln_xguhsld}
+```
+
+这串字符用凯撒密码和栅栏密码解都得不到结果，但是解凯撒密码时能看到比较规律的 24 个字母，如图:
+
+![image-20230916200114807](static/img/image-20230916200114807.png)
+
+```python
+ciphertext = "uozt{Zgyzhv_xlwv_uiln_xguhsld}"
+
+
+def atbash_decrypt(ciphertext):
+    decrypted_text = ""
+    for char in ciphertext:
+        if char.isalpha():
+            if char.isupper():
+                decrypted_text += chr(90 - (ord(char) - 65))  # 65 和 90 是 'A' 和 'Z' 的 ASCII 值
+            else:
+                decrypted_text += chr(122 - (ord(char) - 97))  # 97 和 122 是 'a' 和 'z' 的 ASCII 值
+        else:
+            decrypted_text += char
+    return decrypted_text
+
+
+def main():
+    print(atbash_decrypt(ciphertext))
+    
+    
+if __name__ == '__main__':
+    main()
+```
 
 #### Quoted-printable
 

@@ -237,14 +237,115 @@ tar -czvf html.tar.gz 要压缩的文件或目录
 tar -xvf html.tar.gz
 ```
 
-
-
 复制目录并替换所有文件
 
 ```
 cp -rf /tmp/html/* /var/www/html
 ```
 
+#### MySQL 修改密码
 
+在Linux上更改MySQL密码的步骤如下：
+
+1. 首先，你需要登陆到MySQL。在命令行中输入以下命令：
+
+   ```
+   mysql -u root -p
+   ```
+
+   这将提示你输入当前的root密码。
+
+2. 在成功登陆MySQL之后，你可以使用以下命令更改密码：
+
+   如果你使用的是MySQL 5.7及以下版本，可以使用以下命令：
+
+   ```
+   SET PASSWORD FOR 'root'@'localhost' = PASSWORD('your_new_password');
+   ```
+
+   如果你使用的是MySQL 5.7.6及以上版本，可以使用以下命令：
+
+   ```
+   ALTER USER 'root'@'localhost' IDENTIFIED BY 'your_new_password';
+   ```
+
+   在上述命令中，'your_new_password'是你想要设置的新密码。
+
+3. 最后，使用以下命令刷新权限，使新密码生效：
+
+   ```
+   FLUSH PRIVILEGES;
+   ```
+
+注意：如果你忘记了root密码，你需要以系统管理员的身份停止MySQL服务，跳过权限检查，然后更改密码。这个过程的具体步骤因Linux发行版的不同而不同，但一般来说，你需要在命令行中执行一些类似于以下的命令：
+
+```
+sudo service mysql stop
+sudo mysqld_safe --skip-grant-tables &
+mysql -u root
+```
+
+然后，你可以使用上述的`SET PASSWORD`或`ALTER USER`命令更改密码。记得在完成后重新启动MySQL服务。
+
+#### Docker 设置 ssh
+
+在 Docker 容器的 Debian 中设置 ssh 和 root 密码需要一系列的步骤。下面是一个基本的步骤指南：
+
+1. 构建一个 Dockerfile：
+
+    ```Dockerfile
+    FROM debian:latest
+    
+    # 安装 ssh 服务
+    RUN apt-get update && apt-get install -y openssh-server
+    RUN mkdir /var/run/sshd
+    
+    # 设置 root 密码
+    RUN echo 'root:YOURPASSWORD' | chpasswd
+    
+    # 改变 sshd 配置以允许 root 登录
+    RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    
+    # SSH 登录修复，否则 root 用户无法登录
+    RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+    
+    ENV NOTVISIBLE "in users profile"
+    RUN echo "export VISIBLE=now" >> /etc/profile
+    
+    EXPOSE 22
+      CMD ["/usr/sbin/sshd", "-D"]
+    ```
+
+    请将 `'root:YOURPASSWORD'` 中的 `YOURPASSWORD` 替换为你想要的密码。
+
+    在后台不阻塞运行，直接输入 `/usr/sbin/sshd`
+
+2. 保存这个 Dockerfile，然后在 Dockerfile 所在的目录下运行以下命令以构建镜像：
+
+    ```bash
+    docker build -t debian_ssh .
+    ```
+
+3. 运行你的 Docker 容器：
+
+    ```bash
+    docker run -d -p 2222:22 debian_ssh
+    ```
+
+    这将启动一个新的 Docker 容器，并且将它的 22 端口映射到主机的 2222 端口。
+
+4. 现在你可以通过 ssh 连接到你的 Docker 容器了：
+
+    ```bash
+    ssh root@localhost -p 2222
+    ```
+
+    当提示输入密码时，输入你在 Dockerfile 中设置的密码。
+
+#### Mac Docker 开启 SFTP
+
+```bash
+docker run -p 2222:22 -d --name sftp -v /Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/shared_directory:/home/teammate atmoz/sftp teammate:5wtfsyixqtesm:::upload
+```
 
 # 工具
