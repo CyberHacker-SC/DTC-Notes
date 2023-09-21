@@ -678,6 +678,12 @@ fcrackzip -v -D -p passwords.txt -u flag.zip
 Decode.exe -X 1.mp3
 ```
 
+#### SilentEye 提取音频文件
+
+（软件在 win11 虚拟机中）
+
+使用 SilentEye 提取隐写内容
+
 ### 视频文件
 
 用 final cut pro 一帧一帧看，可能会发现什么（比如视频的其中一帧藏了一个 base64）
