@@ -555,7 +555,7 @@ if __name__ == '__main__':
 
 ##### 已知 e,p,q,c 求 明文 m
 
-- 遇到有一道题，题目给了两组 e,p,q,c，但是两组的 e 和 φn 都不互素，这时应该考虑模不互素的[情况二](######情况二)
+- (另一种情况) 遇到有一道题，题目给了两组 e,p,q,c，但是两组的 e 和 φn 都不互素，这时应该考虑模不互素的[情况二](######情况二)
 
 ```python
 import gmpy2
@@ -883,7 +883,9 @@ if __name__ == '__main__':
 
 ###### 广播攻击
 
-已知 e 和多组 (n, c) 对
+
+
+已知 e 和多组 (n, c) 对 (e 很小？)
 
 ```python
 from sympy.ntheory.modular import crt
@@ -1111,6 +1113,26 @@ flag = libnum.n2s(m).decode()
 ```
 
 上面这段代码是将10进制转为字符串，如需将16进制转为字符串，使用 `binascii.unhexlify(hex(m)[2:]).decode()`
+
+如果 `libnum.n2s(m)` 和 `binascii.unhexlify(hex(m)[2:]).decode()` 都解不了，则使用
+
+```python
+from Crypto.Util.number import long_to_bytes
+
+long_to_bytes(m)
+```
+
+使用 `long_to_bytes` 的原因如下：
+
+`m`是解密后得到的明文，它是一个长整数。我们需要将这个长整数转换回原始的字节字符串。
+
+`long_to_bytes(m)`，`libnum.n2s(m)`和`binascii.unhexlify(hex(m)[2:]).decode()`都是用来做这个转换的，但是它们在处理特定情况时的行为是不同的。
+
+- `long_to_bytes(m)`来自于Python的cryptography库中的Crypto.Util.number模块，它可以正确地将任何长整数转换为字节字符串。
+- `libnum.n2s(m)`来自于libnum库，它也可以将长整数转换为字节字符串，但是如果m的值不是完全符合ASCII编码范围内的字符，可能会导致错误。
+- `binascii.unhexlify(hex(m)[2:]).decode()`首先将长整数m转换为十六进制字符串，然后尝试将这个字符串解码为字节字符串。但是，如果m的十六进制表示形式的长度是奇数，或者包含了不是有效ASCII字符的字节，这个方法也会导致错误。
+
+所以，如果`libnum.n2s(m)`和`binascii.unhexlify(hex(m)[2:]).decode()`都报错，那么很可能是因为m的值包含了一些这两个方法无法正确处理的字节。而`long_to_bytes(m)`能够正确地处理这些情况，所以它可以成功地将m转换为字节字符串。
 
 #####  pow(FLAG, e, N) 和 
 
