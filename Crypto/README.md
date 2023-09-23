@@ -455,7 +455,7 @@ echo md5($str1) === md5($str2);
 
 - 当无法分离出 p、q 时，通过观察方程式求 gcd 是一个思路(例题:[[SWPU 2020]happy](https://www.ctfer.vip/problem/149))
 
-- 注意 n 和 φn 的区别
+- 在暴力枚举 e 来爆破时，当e和φn的最大公因数不为1时，模逆元就不存在，这时应该加上 `try except` 来跳过当前的 e 。例题 [[BJDCTF 2020]rsa](https://www.ctfer.vip/problem/688)
 - 如果需要求明文 m，又只知道 e, n, c，可以通过[在线工具](#####将 n 分解为 p,q)通过 n 反查 p, q
 - 如果 p 被移位，且末尾有很多0，要想到 [SageMath 还原](####SageMath 还原)
 

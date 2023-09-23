@@ -3259,6 +3259,8 @@ http://xxx/testURL?url=%00file:///flag
 
 ##### Struts2-Scan
 
+文件位置：`/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Web/Java渗透/Struts2Scan`
+
 用法：先检测漏洞类型，再利用漏洞（共两步）
 
 ###### [单个URL漏洞检测:](https://github.com/Vancomycin-g/Struts2Scan#单个url漏洞检测)
