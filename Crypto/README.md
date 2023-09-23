@@ -1,6 +1,6 @@
 # Crypto
 
-## 密文解码
+# 密文解码
 
 - 如果看起来像 base，可能是多层嵌套 base，用其他软件解可能都会报错，这时选择 [basetrack](####basetrack) 自动接码 (有的非标准格式的 base 编码应该用 basetrack 来解)
   - 如果遇到不认识的密码，长得像 base64 又不是 base 系列，可以考虑 [Rabbit](#Rabbit) 。除此之外，如果这段密文很长，还可能是[图片的 base64](####base64 转图片) (TomatoTools 识别不了)
@@ -17,18 +17,18 @@
 - 看到 flag 顺序是乱的（如 `fa{hsi_refa}lgti_stu_lg`），不止要想到凯撒密码，还要想到栅栏密码。此外，还要想到 Atbash Cipher
 - 如果题目中提示有两个密钥，如 `19_20`，要联想到是[仿射密码](####仿射密码)
 
-### ciphey
+## ciphey
 > 先尝试 ciphey -t "Encrypted input"
 
 另外，如果能看出密钥，这种可能使用 AES 算法
 
-### 进制转换
+## 进制转换
 
-#### 10进制转其他
+### 10进制转其他
 
 如需转回十进制，用 `int(text)`、`int(text, 2)`、`int(text, 16)`
 
-##### 10进制转16进制
+#### 10进制转16进制
 
 - 注意这种转换和 assci 码转换的区别，编码方式不同导致结果不同
 
@@ -48,19 +48,19 @@ hex(3207357)[2:]
 int(hex_number, 16)
 ```
 
-##### 10进制转2进制
+#### 10进制转2进制
 
 ```python
 bin(3207357)
 ```
 
-##### 10进制转8进制
+#### 10进制转8进制
 
 ```python
 oct(3207357)
 ```
 
-#### 特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag
+### 特殊情况：16进制/10进制/2进制 偏移后的字符串转 flag
 
 - 我已经将该脚本完善为一个**通用脚本**，支持 2进制/10进制/16进制 **直接转换**为 unicode 字符串，同时支持按 **最后一个字符和  '}' 的偏移**来转换
 
@@ -172,13 +172,13 @@ if __name__ == '__main__':
     main()
 ```
 
-### base 格式
+## base 格式
 
 - 看到很长一串，可能是图片的 base64
 
 - 有一些多层嵌套的 base 编码，TomatoTools 识别不了，但是可以用 basetrack 识别 (用 magic 模式)
 
-#### basecrack
+### basecrack
 
 **普通解码**
 ```bash
@@ -195,7 +195,7 @@ python basecrack.py --magic -b 编码文本
 
 - 读文件: `-f file.txt`
 
-#### 破解 Base 家族 (超大参数量)
+### 破解 Base 家族 (超大参数量)
 
 如果参数量大到 basecrack 无法运行，可以使用此方法破解 base 家族加密
 
@@ -218,7 +218,7 @@ while(1):
 print(text)
 ```
 
-#### base64 转图片
+### base64 转图片
 
 https://tool.jisuapi.com/base642pic.html
 
@@ -250,7 +250,7 @@ image_path = 'output.png'  # 输出的图片路径
 base64_to_image(base64_str, image_path)
 ```
 
-#### base64 表偏移获取 flag
+### base64 表偏移获取 flag
 
 由于 flag{xxxx...} 开头的字符串的 base64 编码一定是 Zmxh 开头，可以根据求 flag 的偏移量还原 base64 格式的密文。（同理，也可将 `flag` 替换为其他前缀）
 
@@ -293,12 +293,12 @@ if __name__ == '__main__':
     main()
 ```
 
-### Hash
+## Hash
 
 - MD5算法生成的哈希值通常以16进制的形式表示。这是因为MD5算法生成的原始结果是一个128位的二进制数，这个数包含的信息量非常大，如果直接以二进制或者十进制的形式表示，将会非常长。因此，通常会将这个二进制数转换为16进制来表示，这样可以大大减少表示的长度。一个128位的二进制数可以转换为一个32位的16进制数，这就是我们通常看到的MD5哈希值的形式。
 - 有一些 hash 碰撞题目给的条件很多，实际并不难。按题目给的条件编写碰撞代码，简单地遍历数字即可得到结果
 
-#### Hash 类 (md5) 密文在线解密
+### Hash 类 (md5) 密文在线解密
 
 https://www.cmd5.com/
 
@@ -306,9 +306,9 @@ https://www.cmd5.com/
 
 https://www.somd5.com/
 
-#### MD5 碰撞
+### MD5 碰撞
 
-##### 通用碰撞模版
+#### 通用碰撞模版
 
 ```python
 import hashlib
@@ -328,7 +328,7 @@ if __name__ == '__main__':
     main()
 ```
 
-##### 普通碰撞套路示例
+#### 普通碰撞套路示例
 
 （这只是一个示例提示，这段代码不重要，以上一个模版为准）
 
@@ -352,7 +352,7 @@ if __name__ == '__main__':
     main()
 ```
 
-##### 带前缀的 MD5 碰撞
+#### 带前缀的 MD5 碰撞
 
 运行以下脚本，解得后缀
 
@@ -376,9 +376,9 @@ if __name__ == '__main__':
     main()
 ```
 
-##### MD5 强碰撞（Python 和 PHP ===）
+#### MD5 强碰撞（Python 和 PHP ===）
 
-###### Python
+##### Python
 
 ```python
 import hashlib
@@ -404,7 +404,7 @@ if __name__ == '__main__':
     main()
 ```
 
-###### PHP
+##### PHP
 
 原版
 
@@ -451,7 +451,7 @@ echo md5($str1) === md5($str2);
 
 
 
-### RSA
+## RSA
 
 - 当无法分离出 p、q 时，通过观察方程式求 gcd 是一个思路(例题:[[SWPU 2020]happy](https://www.ctfer.vip/problem/149))
 
@@ -459,9 +459,9 @@ echo md5($str1) === md5($str2);
 - 如果需要求明文 m，又只知道 e, n, c，可以通过[在线工具](#####将 n 分解为 p,q)通过 n 反查 p, q
 - 如果 p 被移位，且末尾有很多0，要想到 [SageMath 还原](####SageMath 还原)
 
-#### 原理
+### 原理
 
-##### 公钥与私钥的产生
+#### 公钥与私钥的产生
 
 1. **密钥生成**：首先，选择两个大质数 p 和 q，然后计算它们的乘积 n。n 就是公钥和私钥的一部分。然后计算 φ(n)（也就是 n 的欧拉函数，等于 (p-1)(q-1)）。接着，选择一个整数 e，使得 e 和 φ(n) 是互质的（即 e 和 φ(n) 的最大公约数是 1），并且 1 < e < φ(n)。**公钥**就是 (n, e)。然后，计算一个数 d，使得 (d * e) % φ(n) = 1。**私钥**就是 (n, d)。
 2. **加密**：假设有一个消息 m，我们要用公钥 (n, e) 进行加密。计算 c = m^e % n。这里的 c 就是加密后的消息。
@@ -471,7 +471,7 @@ RSA 的安全性基于一个事实：虽然 n、e 和 c 都是公开的，但是
 
 总的来说，RSA 算法的公钥和私钥原理基于大数因子分解的困难性，以及模运算和欧拉函数的性质。
 
-##### 条件
+#### 条件
 
 在RSA加密算法中，以下是一些必须满足互素条件的值：
 
@@ -483,9 +483,9 @@ RSA 的安全性基于一个事实：虽然 n、e 和 c 都是公开的，但是
 
 注意，虽然在理论上p、q、e等都需要是大素数，但在实际应用中，为了方便，e经常被选为65537，这是一个相对较小的素数，但可以提供足够的安全性，并且在计算上相对高效。
 
-#### 工具
+### 工具
 
-##### 求解最大公因数
+#### 求解最大公因数
 
 Greatest Common Divisor
 
@@ -501,7 +501,7 @@ r = math.gcd(a, b)
 print(r)
 ```
 
-##### 将 n 分解为 p,q
+#### 将 n 分解为 p,q
 
 - 不是很大的 n 都可以试试该方法
 
@@ -509,11 +509,11 @@ print(r)
 
 在线工具: http://factordb.com/
 
-##### 在线 sagemath
+#### 在线 sagemath
 
 https://sagecell.sagemath.org/?q=iyqcsn
 
-##### 求两个数是否互素
+#### 求两个数是否互素
 
 ```python
 print(gmpy2.gcd(e, φn))
@@ -521,11 +521,11 @@ print(gmpy2.gcd(e, φn))
 
 如果输出的结果不是1 (最大公因数)，那么就说明e和φn不是互素
 
-#### 题型
+### 题型
 
 - `e` 有可能藏在公式中，如 `c = pow(m,3,n)`, `e` 为 3
 
-##### 已知 p,q,e 求 d
+#### 已知 p,q,e 求 d
 
 p=447685307 q=2037 e=17
 
@@ -553,7 +553,7 @@ if __name__ == '__main__':
 在你的代码中，`gmpy2.invert(e, n)` 计算的是 e 在模 n 下的乘法逆元。在 RSA 加密算法中，这个逆元对应的就是私钥中的 d。这样，对于公钥 (n, e) 和私钥 (n, d)，我们有 (d * e) % n = 1，这是 RSA 算法的一个关键性质。
 
 
-##### 已知 e,p,q,c 求 明文 m
+#### 已知 e,p,q,c 求 明文 m
 
 - (另一种情况) 遇到有一道题，题目给了两组 e,p,q,c，但是两组的 e 和 φn 都不互素，这时应该考虑模不互素的[情况二](######情况二)
 
@@ -592,7 +592,7 @@ if __name__ == '__main__':
 
   总的来说，这段代码就是实现了 RSA 解密的过程，将密文解密回原始的明文。
 
-##### 已知 n1、n2、e、c 求明文 m
+#### 已知 n1、n2、e、c 求明文 m
 
 ```python
 import binascii
@@ -621,11 +621,11 @@ m = pow(c,d1,n1)
 print(binascii.unhexlify(hex(m)[2:]).decode())
 ```
 
-##### 模不互素
+#### 模不互素
 
 - 只要两个或多个模（如 n1, n2）不互素，则可以通过求最大公因数的方式求得 p 或 q 的其中一个（如 p），然后使用 n // p 求得另一个
 
-###### 情况一
+##### 情况一
 
 有两组值，没有 p, q, 但是 e 相同
 
@@ -653,7 +653,7 @@ print(binascii.unhexlify(hex(m)[2:]).decode())
 
 - n1，n2不同，考虑模不互素的情况，由于n1，n2不互素，那么必然有一个公因数，由于n是由两个[质数](https://so.csdn.net/so/search?q=质数&spm=1001.2101.3001.7020)相乘得到的，所以只有两个因数，那他们的公因数设为p，则q1=n1//p, q2=n2//p，求解m就好了。
 
-###### 情况二
+##### 情况二
 
 有两组值，且两组值的 e 和 φn 都不互素。在正常解密文时报错: 
 
@@ -705,7 +705,7 @@ msg = gmpy2.iroot(m, 2)[0]
 print(long_to_bytes(msg).decode())
 ```
 
-##### 共模攻击
+#### 共模攻击
 
 - 有两组值，n 相同而 e, c 不同
 
@@ -764,11 +764,11 @@ C1^x * C2^y = (m^e1)^x * (m^e2)^y = m^(e1*x + e2*y) = m mod n
 
 需要注意的是，这种攻击方式的前提是两个公钥使用了同一个模数n，这在实际操作中是应该避免的。因此，一个好的RSA系统应该确保每个公钥都使用一个独特的模数。
 
-##### 低加密指数攻击
+#### 低加密指数攻击
 
 - 已知 e, n, c，且 e 过小或 e 过大
 
-###### e 过小
+##### e 过小
 
 原题中，e为3，**对n，c来说非常小**
 
@@ -800,7 +800,7 @@ if __name__ == '__main__':
     main()
 ```
 
-###### e 过大
+##### e 过大
 
 ```python
 import gmpy2
@@ -883,7 +883,7 @@ if __name__ == '__main__':
     main()
 ```
 
-###### e 小指数攻击（暴力枚举 e）
+##### e 小指数攻击（暴力枚举 e）
 
 已知 m, n 直接暴力枚举 e
 
@@ -921,7 +921,7 @@ print("m:", binascii.unhexlify(hex(small_m_atk(m, n))[2:]))
 
 然而，这种攻击方法有一个限制，那就是它需要明文m的大小较小。如果m的大小接近n，那么m的e次方将会大于n，加密过程将会进行模n的运算，这就使得这种攻击方法无法成功。因此，这种攻击方法只在明文m的大小较小的情况下有效。
 
-###### 广播攻击
+##### 广播攻击
 
 已知 e 和多组 (n, c) 对 (e 很小？)
 
@@ -939,7 +939,7 @@ value, is_perfect = iroot(resultant,e)
 print(long_to_bytes(value))
 ```
 
-##### 已知 e, n, dp, c
+#### 已知 e, n, dp, c
 
 发现常规rsa不存在的dp。查找资料知道 dp ≡ d mod (p - 1)。意识到dp是解题关键，可能dp和n存在某种关系可以解出p或者去，跟之前有一题有点类似，求p和q之间存在的线性关系那题
 
@@ -965,7 +965,7 @@ for i in range(1, e):
 
 
 
-##### n 等于3个大素数相乘
+#### n 等于3个大素数相乘
 
 RSA加密通常使用两个大素数，但是它可以被扩展到使用多个素数，这就是多素数RSA
 
@@ -1021,13 +1021,13 @@ if __name__ == '__main__':
     main()
 ```
 
-##### 文件题 (public.key 和 flag.enc)
+#### 文件题 (public.key 和 flag.enc)
 
 public.key 是 公钥加密文件，可以解析出 n 和 e
 
 flag.enc 大概率是私钥加密密文，此处把他当成 RSA 加密文件解即可
 
-###### 1.解析 public.key 为 n 和 e
+##### 1.解析 public.key 为 n 和 e
 
 - 已有文件 public.key
 
@@ -1052,7 +1052,7 @@ print("e:", e)
 
 再使用在线网站将 n 分为两个大质数 p 和 q 即可
 
-###### 2.使用 RSA 解密 flag.enc
+##### 2.使用 RSA 解密 flag.enc
 
 ```python
 import libnum
@@ -1078,13 +1078,13 @@ if __name__ == '__main__':
     main()
 ```
 
-#### SageMath 还原
+### SageMath 还原
 
 - 求到 `m` 后，无论题目是什么，马上想到 `libnum.n2s(m).decode()`，然后打印，很可能就是 flag
 
 执行链接: https://sagecell.sagemath.org/?q=iyqcsn
 
-##### Coppersmith 攻击
+#### Coppersmith 攻击
 
 条件: `p>>128>>128` 被移位，且 p 末尾是**很多0**，所以我们猜想这是Coppersmith攻击。已知 e, p (被移位，代码中为 p4), n
 
@@ -1108,7 +1108,7 @@ if roots:
     print("q= "+str(n//p))
 ```
 
-##### (m>>315)<<315
+#### (m>>315)<<315
 
 已知 n、c、e 和 m 被移位后的结果((m>>315)<<315)
 
@@ -1128,9 +1128,9 @@ print(m)
 # m = 1520800285708753284739523608878585974609134243280728660335545667177630830064371336150456537012842986526527904043383436211487979254140749228004148347597566264500276581990635110200009305900689510908049771218073767918907869112593870878204145615928290375086195098919355531430003571366638390993296583488184959318678321571278510231561645872308920917404996519309473979203661442792048291421574603018835698487725981963573816645574675640357569465990665689618997534740389987351864738104038598104713275375385003471306823348792559733393609593321367463114703873343853590413300366406780333184299791982772652326424221774382732443261
 ```
 
-#### 相关函数及解法
+### 相关函数及解法
 
-##### libnum.s2n
+#### libnum.s2n
 
 - 该函数的功能和 `Crypto.Util.number.bytes_to_long` 基本相同
 
@@ -1172,17 +1172,17 @@ long_to_bytes(m)
 
 所以，如果`libnum.n2s(m)`和`binascii.unhexlify(hex(m)[2:]).decode()`都报错，那么很可能是因为m的值包含了一些这两个方法无法正确处理的字节。而`long_to_bytes(m)`能够正确地处理这些情况，所以它可以成功地将m转换为字节字符串。
 
-#####  pow(FLAG, e, N) 和 
+####  pow(FLAG, e, N) 和 
 
 在 RSA 公钥加密中，`pow(FLAG, e, N)` 是用来加密信息的。这里的 `FLAG` 是要加密的信息（通常是一个数字），`e` 是公钥的一部分，而 `N` 是公钥的另一部分（`N = p * q`，其中 `p` 和 `q` 是两个大质数）。`pow(FLAG, e, N)` 计算的是 `FLAG` 的 `e` 次方对 `N` 取模的结果，这就是加密后的密文。
 
-##### gmpy2.invert(e, φn)
+#### gmpy2.invert(e, φn)
 
 - `Crypto.Util.number.inverse(e,φn)` 也是计算 d，和该函数的功能基本相同
 
 在 RSA 私钥解密中，`gmpy2.invert(e, φn)` 是用来计算解密密钥 `d` 的。这里的 `e` 是公钥的一部分，`φn` 是 `(p - 1) * (q - 1)`，其中 `p` 和 `q` 是两个大质数。`gmpy2.invert(e, φn)` 计算的是 `e` 关于 `φn` 的模逆元，这就是解密密钥 `d`。
 
-##### gmpy2.powmod(c, d, n)
+#### gmpy2.powmod(c, d, n)
 
 `gmpy2.powmod(c, d, n)` 是一个用于计算模幂的函数，它计算的是 `c` 的 `d` 次方对 `n` 取模的结果。具体来说，它返回的是 `(c^d) mod n` 的结果。这个函数特别适用于处理大数的模幂运算，因为直接计算 `c` 的 `d` 次方可能会导致数字过大而无法处理。
 
@@ -1190,21 +1190,21 @@ long_to_bytes(m)
 
 这是因为在 RSA 加密过程中，明文 `m` 被加密为密文 `c` 通过计算 `c = pow(m, e, n)`，其中 `(n, e)` 是公钥。因此，要恢复原始的明文 `m`，我们需要计算 `m = pow(c, d, n)`，其中 `(n, d)` 是私钥。由于 `d` 是 `e` 关于 `φ(n)` 的模逆元，这个计算能够正确地恢复出原始的明文 `m`。因此，`gmpy2.powmod(c, d, n)` 是 RSA 解密过程的关键部分。`gmpy2.powmod(c, d, n)` 的结果用 `binascii.unhexlify(hex(m)[2:]).decode()` 转为字符串可得到明文
 
-### TomatoTools 来识别编码
+## TomatoTools 来识别编码
 
 备用工具: CTF-Tools
 
-#### 问题
+### 问题
 - 软件的 base58、base91 有问题。[base91](https://www.dcode.fr/base-91-encoding)
 - Brainfuck 有问题
 
-### CTF-Tools 识别编码
+## CTF-Tools 识别编码
 
 可以批量尝试不同的解密方式
 
-### 肉眼识别密文类型
+## 肉眼识别密文类型
 
-#### 摩斯电码
+### 摩斯电码
 
 形如
 
@@ -1214,7 +1214,7 @@ long_to_bytes(m)
 
 如果工具解不开，直接用 ciphey 解就行了（自动去斜杠）
 
-#### 栅栏密码
+### 栅栏密码
 
 形如
 
@@ -1226,7 +1226,7 @@ long_to_bytes(m)
 
 
 
-#### 培根密码
+### 培根密码
 
 解密地址 http://www.metools.info/code/bacon193.html
 
@@ -1255,7 +1255,7 @@ print(text)
 
 
 
-#### 社会主义核心价值观加密/解密
+### 社会主义核心价值观加密/解密
 形如 
 
 ```
@@ -1263,7 +1263,7 @@ print(text)
 ```
 
 
-#### "奇特"（esoteric）编程语言
+### "奇特"（esoteric）编程语言
 
 Brainfuck 和 Ook! 都是所谓的"奇特"（esoteric）编程语言，这种编程语言通常是为了探索编程语言设计的边界，或者仅仅是为了娱乐。这两种语言都是图灵完备的，这意味着它们可以被用来实现任何可计算的问题（只要给予足够的时间和存储空间）。
 
@@ -1374,7 +1374,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-##### ook
+#### ook
 
 遇到类似的，可能把 Ook 替换为了其他字母，要能反应过来是 ook 密码
 
@@ -1386,7 +1386,7 @@ Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
 
 解密地址 https://www.splitbrain.org/services/ook (选择 Ook! to Text)
 
-##### Brainfuck
+#### Brainfuck
 
 形如
 
@@ -1404,7 +1404,7 @@ Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
 
 解密地址 https://www.splitbrain.org/services/ook (选择 Brainfuck to Text)
 
-#### 猪圈密码
+### 猪圈密码
 
 形如下图
 
@@ -1412,7 +1412,7 @@ Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
 
 解密地址 http://www.metools.info/code/c90.html
 
-#### Baudot Code
+### Baudot Code
 
 形如
 
@@ -1422,14 +1422,14 @@ Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
 
 解密地址 https://www.boxentriq.com/code-breaking/baudot-code
 
-#### html 的编码样子
+### html 的编码样子
 形如
 
 ```
 &#x66;&#x6c;&#x61;
 ```
 
-#### jsfuck
+### jsfuck
 
 形如
 
@@ -1443,7 +1443,7 @@ Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook. Ook.
 
 复制到 F12 ，在控制台执行即可得到明文
 
-#### **Rabbit**
+### **Rabbit**
 
 形如 
 
@@ -1458,7 +1458,7 @@ U2FsdGVkX1/eK2855m8HM4cTq8Fquqtm6QDbcUu4F1yQpA==
 
 需要一个密钥，在线解密地址: https://www.sojson.com/encrypt_rabbit.html
 
-#### RC4
+### RC4
 
 形如
 
@@ -1468,7 +1468,7 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 需要一个密钥，在线解密地址: https://www.sojson.com/encrypt_rc4.html
 
-#### 音乐符号密文
+### 音乐符号密文
 
 形如
 
@@ -1478,7 +1478,7 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 在线解密地址: https://www.qqxiuzi.cn/bianma/wenbenjiami.php?s=yinyue
 
-#### 数独密码
+### 数独密码
 
 如下图
 
@@ -1488,7 +1488,7 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 解得结果后，所有数字连接起来就是密码
 
-#### emoji-aes
+### emoji-aes
 
 形如（需要密钥）
 
@@ -1498,7 +1498,7 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 在线解密地址: https://aghorler.github.io/emoji-aes/
 
-#### Tap Code
+### Tap Code
 
 - Tap Code 只能是两位数为一组
 - 遇到一道题，它在 Tap Code 中间插入了单独的1位数字 (如 `55 32 21 7 11 23 33 35 53 3 25 31 55 32 21 9 12 22 14 0 11 51 9 55 14 23 51 21 12 22 13`)，这时只需要解码 Tap Code，手动将1位数字插入进原来的位置即可
@@ -1511,7 +1511,7 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 在线工具: https://www.boxentriq.com/code-breaking/tap-code (如果是像例子中的数字，需要选择 `Numbers`) [如果不行，解码出来的字母可以全部转为大写再试试]
 
-#### 仿射密码
+### 仿射密码
 
 - 如果题目中提示有两个密钥，如 `19_20`，要联想到是仿射密码
 
@@ -1519,7 +1519,7 @@ U2FsdGVkX19uI2lzmxYrQ9mc16y7la7qc7VTS8gLaUKa49gzXPclxRXVsRJxWz/p
 
 在线解密：http://www.metools.info/code/affinecipher183.html
 
-#### Atbash Cipher (埃特巴什码 )
+### Atbash Cipher (埃特巴什码 )
 
 埃特巴什码（Atbash Cipher）其实可以视为下面要介绍的简单替换密码的特例，其原理为：它使用字母表中的最后一个字母代表第一个字母，倒数第二个字母代表第二个字母。在罗马字母表中，它是这样出现的： 明文：A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 密文：Z Y X W V U T S R Q P O N M L K J I H G F E D C B A 
 
@@ -1558,7 +1558,7 @@ if __name__ == '__main__':
     main()
 ```
 
-#### Quoted-printable
+### Quoted-printable
 
 形如
 
@@ -1582,7 +1582,7 @@ decoded_text = decode_quopri(text)
 print(decoded_text)
 ```
 
-#### 当铺密码
+### 当铺密码
 
 形如:
 
@@ -1623,7 +1623,7 @@ print('----------明文的大写为----------')
 print(mingwen.upper())
 ```
 
-#### 兽音密码
+### 兽音密码
 
 形如
 
@@ -1633,7 +1633,7 @@ print(mingwen.upper())
 
 在线解密: https://roar.iiilab.com/
 
-#### EBCDIC
+### EBCDIC
 
 如果一个文件用 010 editor 打开有乱码内容，形如
 
@@ -1643,7 +1643,7 @@ print(mingwen.upper())
 
 解码方法：打开 010 editor，选择 tools，选择 convert，选择 convert to EBCDIC (使用后记得还原)
 
-#### serpent
+### serpent
 
 - 需要密钥，选择默认模式解密
 
@@ -1658,22 +1658,22 @@ m»èr^Ð?{¸&îú 43ÚäéÂ y
 
 在线解密: http://serpent.online-domain-tools.com/ (不要通过文本解密 (经测试无效)。需要在该网站上传 `.dat` 文件，然后输入密钥解密)
 
-#### 福尔摩斯小人密码
+### 福尔摩斯小人密码
 
 ![](static/img/福尔摩斯小人密码1.png)
 
 ![](static/img/福尔摩斯小人密码2.png)
 
-#### 西卡语
+### 西卡语
 
 ![](static/img/西卡语.png)
 
-## 密码学及文本处理工具
+# 密码学及文本处理工具
 
-### 编码任何类型的数据
+## 编码任何类型的数据
 > 任何类型的文件都可能被编码，可尝试用 stegpy 解编码
 
-#### stegpy
+### stegpy
 普通提取
 ```bash
 stegpy _image.png
@@ -1683,21 +1683,21 @@ stegpy _image.png
 stegpy _image.png -p 密码
 ```
 
-### 密码字典生成
+## 密码字典生成
 
-#### crunch
+### crunch
 > 生成该数字开头的所有手机号
 ```bash
 crunch 11 11 -t 1391040%%%% -o 1.txt
 ```
 
-#### 大小写转换
+### 大小写转换
 https://www.iamwawa.cn/daxiaoxie.html
 
 
 
-## 数学基础
+# 数学基础
 
-### 因式分解
+## 因式分解
 
 `1+p^3 = (1+p)(p^2-p+1)`
