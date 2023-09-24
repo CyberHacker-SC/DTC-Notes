@@ -314,6 +314,7 @@ https://www.somd5.com/
 import hashlib
 
 
+data = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 def main():
     for i in range(100000):
         token = hashlib.md5(str(i).encode()).hexdigest()
