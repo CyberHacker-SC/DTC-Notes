@@ -458,6 +458,7 @@ echo md5($str1) === md5($str2);
 - 在暴力枚举 e 来爆破时，当e和φn的最大公因数不为1时，模逆元就不存在，这时应该加上 `try except` 来跳过当前的 e 。例题 [[BJDCTF 2020]rsa](https://www.ctfer.vip/problem/688)
 - 如果需要求明文 m，又只知道 e, n, c，可以通过[在线工具](#####将 n 分解为 p,q)通过 n 反查 p, q
 - 如果 p 被移位，且末尾有很多0，要想到 [SageMath 还原](####SageMath 还原)
+- 如果题目分为多个部分（如3个部分），尽量写在一段代码里解密3个部分，然后在代码中相连接（不要复制粘贴，复制粘贴很可能漏掉一些字符【如 `\n`】）
 
 ### 原理
 
@@ -1110,13 +1111,13 @@ if __name__ == '__main__':
     main()
 ```
 
-### SageMath 还原
+#### SageMath 还原
 
 - 求到 `m` 后，无论题目是什么，马上想到 `libnum.n2s(m).decode()`，然后打印，很可能就是 flag
 
 执行链接: https://sagecell.sagemath.org/?q=iyqcsn
 
-#### Coppersmith 攻击
+##### Coppersmith 攻击
 
 条件: `p>>128>>128` 被移位，且 p 末尾是**很多0**，所以我们猜想这是Coppersmith攻击。已知 e, p (被移位，代码中为 p4), n
 
@@ -1126,6 +1127,7 @@ n = 0x79e0bf9b916e59286163a1006f8cefd4c1b080387a6ddb98a3f3984569a4ebb48b22ac36df
 #p4为p去除末尾0的剩余位
 p4 = 0xd1c520d9798f811e87f4ff406941958bab8fc24b19a32c3ad89b0b73258ed3541e9ca696fd98ce15255264c39ae8c6e8db5ee89993fa44459410d30a0a8af700ae3aee8a9a1d6094f8c757d3b79a8d1147e85be34fb260a970a52826c0a92b46cefb5dfaf2b5a31edf867f8d34d22229
 e = 0x10001
+# 根据具体情况修改此值，这里知道 p 是一个 1024 位的数（比如，p 也可能是 512 位的数）
 pbits = 1024
 kbits = pbits - p4.nbits()
 print(p4.nbits())
@@ -1140,7 +1142,7 @@ if roots:
     print("q= "+str(n//p))
 ```
 
-#### (m>>315)<<315
+##### 移位 如 (m>>315)<<315
 
 已知 n、c、e 和 m 被移位后的结果((m>>315)<<315)
 
