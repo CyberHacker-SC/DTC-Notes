@@ -308,6 +308,8 @@ https://www.somd5.com/
 
 ### MD5 碰撞
 
+例题: https://www.ctfer.vip/problem/3971
+
 #### 通用碰撞模版
 
 ```python

