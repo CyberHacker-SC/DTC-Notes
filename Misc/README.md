@@ -170,7 +170,7 @@ montage *.jpg -tile 6x6 -geometry +0+0 flag.jpg
 
 使用方法，选择图片，点 Seek，然后空密码，输出为 txt (其实不一定是 txt，根据具体情况，把后缀改了)
 
-#### 图片自动拼接
+### 图片自动拼接
 
 例如
 

