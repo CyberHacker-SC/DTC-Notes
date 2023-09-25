@@ -7,7 +7,7 @@ def upgrade_headings(md_content):
     lines = md_content.split('\n')
     for i, line in enumerate(lines):
         if line.startswith('##'):
-            lines[i] = '#' + line
+            lines[i] = line[1:]
     return '\n'.join(lines)
 
 def main():
